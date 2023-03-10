@@ -1,0 +1,19 @@
+{
+  "name": "blockpass",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/putridar/BlockPass.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/putridar/BlockPass/issues"
+  },
+  "homepage": "https://github.com/putridar/BlockPass#readme"
+}
