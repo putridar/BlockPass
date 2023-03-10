@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import { signUp } from './controller/user-controller.js';
+
 
 const PORT = 8000;
 const app = express();
@@ -12,6 +14,8 @@ app.options('*', cors());
 const router = express.Router();
 
 router.get('/', (_, res) => res.send('Hello World from BlockPass-backend'));
+
+router.post('/signup', signUp);
 
 app.use('/api', router).all((_, res) => {
   res.setHeader('content-type', 'application/json');
