@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 contract Event {
-    enum eventState {inactive, active, expired}
+    enum eventState { inactive, active, expired }
 
     struct eventStruct {
         uint256 eventId;
@@ -48,7 +48,7 @@ contract Event {
         numEvent++;
         return newEvent.eventId;
     }
-
+    
     function activateEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) {
         events[eventId].currState = eventState.active;
     }
