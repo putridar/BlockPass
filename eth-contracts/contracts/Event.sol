@@ -14,8 +14,8 @@ contract Event {
         eventState currState;
     }
 
-    event activated (uint256 eventId);
-    event expired (uint256 eventId);
+    event eventActivated (uint256 eventId);
+    event eventExpired (uint256 eventId);
 
     uint256 numEvents = 0;
     mapping(uint256 => eventStruct) public events;
@@ -81,9 +81,11 @@ contract Event {
 
     function activateEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) inactiveEvent(eventId) {
         events[eventId].currState = eventState.active;
+        emit eventActivated(eventId);
     }
 
     function expireEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) activeEvent(eventId) {
         events[eventId].currState = eventState.expired;
+        emit eventExpired(eventId);
     }
 }

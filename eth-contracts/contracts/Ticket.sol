@@ -22,9 +22,9 @@ contract Ticket {
     constructor(Event eventContractIn) public {
         eventContract = eventContractIn;
     }
-
-    event activated(uint256 ticketId);
-    event expired(uint256 ticketId);
+    
+    event ticketIssued(uint256 ticketId);
+    event ticketExpired(uint256 ticketId);
 
     uint256 numTickets = 0;
     uint256 limitOfOwnershipChange = 1;
@@ -75,6 +75,7 @@ contract Ticket {
 
             tickets[numTickets] = newTicket;
             res[i] = numTickets;
+            emit ticketIssued(numTickets);
             numTickets++;
         }
 
@@ -93,5 +94,6 @@ contract Ticket {
     //TODO: adminOnly?
     function expireTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].currState = ticketState.expired;
+        emit ticketExpired(ticketId);
     }
 }
