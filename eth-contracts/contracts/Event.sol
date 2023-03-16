@@ -17,7 +17,7 @@ contract Event {
     event activated (uint256 eventId);
     event expired (uint256 eventId);
 
-    uint256 numEvent = 0;
+    uint256 numEvents = 0;
     mapping(uint256 => eventStruct) public events;
 
     modifier adminOnly() {
@@ -31,7 +31,17 @@ contract Event {
     }
 
     modifier validEvent(uint256 eventId) {
-        require(eventId < numEvent);
+        require(eventId < numEvents);
+        _;
+    }
+
+    modifier inactiveEvent(uint256 eventId) {
+        require(events[eventId].currState == eventState.inactive, "This event has been activated or has expired!");
+        _;
+    }
+
+    modifier activeEvent(uint256 eventId) {
+        require(events[eventId].currState == eventState.active, "This event has not been activated or has expired!");
         _;
     }
 
@@ -43,7 +53,7 @@ contract Event {
         require(maxTicketSupply > 0, "Maximum ticket supply must be more than 0!");
 
         eventStruct memory newEvent = eventStruct(
-            numEvent,
+            numEvents,
             title,
             msg.sender,
             maxTicketSupply,
@@ -51,21 +61,25 @@ contract Event {
             eventState.inactive
         );
 
-        events[numEvent] = newEvent;
-        numEvent++;
+        events[numEvents] = newEvent;
+        numEvents++;
         return newEvent.eventId;
     }
     
-    function issueTicket(uint256 eventId, uint256 quantity) public validEvent(eventId) {
+    function addSupply(uint256 eventId, uint256 quantity) public validEvent(eventId) {
         require(events[eventId].currTicketSupply + quantity <= events[eventId].maxTicketSupply, "The requested amount of ticket exceeds the available supply!");
         events[eventId].currTicketSupply = events[eventId].currTicketSupply + quantity;
     }
 
-    function activateEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) {
+    function checkEvent(uint256 eventId) public view returns(bool) {
+        return(eventId < numEvents);
+    }
+
+    function activateEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) inactiveEvent(eventId) {
         events[eventId].currState = eventState.active;
     }
 
-    function expireEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) {
+    function expireEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) activeEvent(eventId) {
         events[eventId].currState = eventState.expired;
     }
 }
