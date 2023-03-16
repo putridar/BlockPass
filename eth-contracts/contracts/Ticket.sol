@@ -27,10 +27,16 @@ contract Ticket {
     event expired(uint256 ticketId);
 
     uint256 numTickets = 0;
+    uint256 limitOfOwnershipChange = 1;
     mapping(uint256 => ticket) public tickets;
 
     modifier adminOnly() {
         require(admin == msg.sender, "Only admins can run this function!");
+        _;
+    }
+
+    modifier ownerOnly(uint256 ticketId) {
+        require(tickets[ticketId].owner == msg.sender);
         _;
     }
 
@@ -76,6 +82,15 @@ contract Ticket {
         return res;
     }
 
+    function transfer(uint256 ticketId, address receiver) public ownerOnly(ticketId) validTicket(ticketId) activeTicket(ticketId) {
+        require(msg.sender != receiver, "Cannot transfer ticket to yourself!");
+        require(tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange, "This ticket's ownership has been changed once before!");
+
+        tickets[ticketId].numberOfOwnershipChanges += 1;
+        tickets[ticketId].owner = receiver;
+    }
+
+    //TODO: adminOnly?
     function expireTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].currState = ticketState.expired;
     }
