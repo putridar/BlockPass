@@ -50,13 +50,15 @@ contract Ticket {
     function issueTickets(
         uint256 eventId,
         uint256 quantity
-    ) public returns (uint256) {
+    ) public returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active!");
         
         eventContract.addSupply(eventId, quantity);
 
-        for (uint i = 0; i < quantity; i++) {
+        uint256[] memory res;
+
+        for(uint i = 0; i < quantity; i++) {
             ticket memory newTicket = ticket(
                 numTickets,
                 eventId,
@@ -66,9 +68,12 @@ contract Ticket {
             );
 
             tickets[numTickets] = newTicket;
+            res[i] = numTickets;
             numTickets++;
-            return newTicket.ticketId;
         }
+
+        // Returns array with ticket IDs of all the tickets that have been issued to the requester
+        return res;
     }
 
     function expireTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
