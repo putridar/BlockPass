@@ -45,7 +45,7 @@ contract Event {
         _;
     }
 
-    function add(
+    function createEvent(
         string memory title,
         uint256 maxTicketSupply
     ) public returns(uint256) {
@@ -71,8 +71,12 @@ contract Event {
         events[eventId].currTicketSupply = events[eventId].currTicketSupply + quantity;
     }
 
-    function checkEvent(uint256 eventId) public view returns(bool) {
+    function eventIsValid(uint256 eventId) public view returns(bool) {
         return(eventId < numEvents);
+    }
+
+    function eventIsActive(uint256 eventId) public view returns(bool) {
+        return(events[eventId].currState == eventState.active);
     }
 
     function activateEvent(uint256 eventId) public organizerOnly(eventId) validEvent(eventId) inactiveEvent(eventId) {

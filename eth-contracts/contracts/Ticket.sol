@@ -6,7 +6,10 @@ contract Ticket {
     Event eventContract;
     address admin = msg.sender;
 
-    enum ticketState { active, expired }
+    enum ticketState {
+        active,
+        expired
+    }
 
     struct ticket {
         uint256 ticketId;
@@ -20,11 +23,11 @@ contract Ticket {
         eventContract = eventContractIn;
     }
 
-    event activated (uint256 ticketId);
-    event expired (uint256 ticketId);
+    event activated(uint256 ticketId);
+    event expired(uint256 ticketId);
 
     uint256 numTickets = 0;
-    mapping (uint256 => ticket) public tickets;
+    mapping(uint256 => ticket) public tickets;
 
     modifier adminOnly() {
         require(admin == msg.sender, "Only admins can run this function!");
@@ -37,26 +40,35 @@ contract Ticket {
     }
 
     modifier activeTicket(uint256 ticketId) {
-        require(tickets[ticketId].currState == ticketState.active, "This ticket has expired!");
+        require(
+            tickets[ticketId].currState == ticketState.active,
+            "This ticket has expired!"
+        );
         _;
     }
 
-    function issueTicket(
-        uint256 eventId
-    ) public returns(uint256) {
-        require(eventContract.checkEvent(eventId), "Event does not exists!");
+    function issueTickets(
+        uint256 eventId,
+        uint256 quantity
+    ) public returns (uint256) {
+        require(eventContract.eventIsValid(eventId), "Event does not exists!");
+        require(eventContract.eventIsActive(eventId), "Event is not active!");
+        
+        eventContract.addSupply(eventId, quantity);
 
-        ticket memory newTicket = ticket(
-            numTickets,
-            eventId,
-            msg.sender,
-            ticketState.active,
-            0
-        );
+        for (uint i = 0; i < quantity; i++) {
+            ticket memory newTicket = ticket(
+                numTickets,
+                eventId,
+                msg.sender,
+                ticketState.active,
+                0
+            );
 
-        tickets[numTickets] = newTicket;
-        numTickets++;
-        return newTicket.ticketId;
+            tickets[numTickets] = newTicket;
+            numTickets++;
+            return newTicket.ticketId;
+        }
     }
 
     function expireTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
