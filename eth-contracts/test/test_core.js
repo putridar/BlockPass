@@ -5,7 +5,7 @@ var assert = require('assert');
 
 var Event = artifacts.require("../contracts/Event.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
-var SecondaryMarket = artifacts.reuqire("../contracts/SecondaryMarket.sol");
+var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 
 contract('BlockPass Core', function(accounts) {
     before(async () => {
