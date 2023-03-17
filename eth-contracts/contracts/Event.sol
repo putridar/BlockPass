@@ -88,4 +88,8 @@ contract Event {
         events[eventId].currState = eventState.expired;
         emit eventExpired(eventId);
     }
+
+    function getEventTitle(uint256 eventId) public view validEvent(eventId) returns(string memory) {
+        return events[eventId].title;
+    }
 }
