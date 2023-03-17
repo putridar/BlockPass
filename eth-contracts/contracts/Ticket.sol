@@ -62,7 +62,7 @@ contract Ticket {
         
         eventContract.addSupply(eventId, quantity);
 
-        uint256[] memory res;
+        uint256[] memory res = new uint256[](quantity);
 
         for(uint i = 0; i < quantity; i++) {
             ticket memory newTicket = ticket(
