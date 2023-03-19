@@ -14,6 +14,7 @@ contract SecondaryMarket {
     Ticket ticketContract;
     uint256 fee = 0; // in ETH
     address admin = msg.sender;
+    uint256 oneEth = 1000000000000000000;
 
     constructor(Ticket ticketContractIn, uint256 feeIn) public {
         ticketContract = ticketContractIn;
@@ -53,13 +54,13 @@ contract SecondaryMarket {
     //TODO: Debug, smth wrong with payables
     function buy(uint256 ticketId) public payable isListed(ticketId) {
         require(ticketContract.getTicketOwner(ticketId) != msg.sender, "You cannot buy your own ticket!");
-        require(msg.value / 1 ether >= listings[ticketId] + fee, "You do not have sufficient funds!");
+        require(msg.value / oneEth >= listings[ticketId] + fee, "You do not have sufficient funds!");
 
         address payable recipient = address(uint160(ticketContract.getTicketOwner(ticketId)));
-        recipient.transfer((listings[ticketId] * 1 ether));
+        recipient.transfer((listings[ticketId] * oneEth));
 
         address payable adminRecipient = address(uint160(admin));
-        adminRecipient.transfer(fee * 1 ether);
+        adminRecipient.transfer(fee * oneEth);
 
         ticketContract.marketTransfer(ticketId, msg.sender);
 

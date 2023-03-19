@@ -18,6 +18,7 @@ contract('Core', function (accounts) {
 
     organizer = accounts[1];
     buyer1 = accounts[2];
+    buyer2 = accounts[3];
 
     it("Create New Event", async () => {
         truffleAssert.reverts(
@@ -45,11 +46,30 @@ contract('Core', function (accounts) {
     });
 
     it("Issue New Ticket", async () => {
+        let currSupply = await eventInstance.getSupply(0);
+        let issue = await ticketInstance.issueTickets(0, 10, { from: organizer });
+        truffleAssert.eventEmitted(issue, "ticketIssued");
 
+        let eventSupply = await eventInstance.getSupply(0);
+        assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 10, "Tickets are not issued!");
     });
 
     it("Transfer Ticket", async () => {
+        await truffleAssert.reverts(
+            ticketInstance.transfer(0, organizer, { from: organizer }),
+            "Cannot transfer ticket to yourself!"
+        );
+        let transfer2 = await ticketInstance.transfer(0, buyer1, { from: organizer });
+        truffleAssert.eventEmitted(transfer2, "ticketTransfered");
+        let owner = await ticketInstance.getTicketOwner(0, { from: buyer1 });
+        assert.strictEqual(owner, buyer1, "Ticket is not transfered!");
+    });
 
+    it("Check Ticket can only be transfered once", async () => {
+        await truffleAssert.reverts(
+            ticketInstance.transfer(0, buyer2, { from: buyer1 }), 
+            "This ticket's ownership has been changed once before!"
+        );
     });
 
     it("List Ticket on Secondary Market", async () => {

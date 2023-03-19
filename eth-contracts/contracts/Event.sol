@@ -20,6 +20,8 @@ contract Event {
     uint256 numEvents = 0;
     mapping(uint256 => eventStruct) public events;
 
+    uint256[] allEvents;
+
     modifier adminOnly() {
         require(admin == msg.sender, "Only admins can run this function!");
         _;
@@ -63,12 +65,21 @@ contract Event {
 
         events[numEvents] = newEvent;
         numEvents++;
+        allEvents.push(numEvents);
         return newEvent.eventId;
+    }
+
+    function getOrganizer(uint256 eventId) public view validEvent(eventId) returns(address) {
+        return events[eventId].organizer;
     }
     
     function addSupply(uint256 eventId, uint256 quantity) public validEvent(eventId) {
         require(events[eventId].currTicketSupply + quantity <= events[eventId].maxTicketSupply, "The requested amount of ticket exceeds the available supply!");
         events[eventId].currTicketSupply = events[eventId].currTicketSupply + quantity;
+    }
+
+    function getSupply(uint256 eventId) public view validEvent(eventId) returns(uint256) {
+        return events[eventId].currTicketSupply;
     }
 
     function eventIsValid(uint256 eventId) public view returns(bool) {
@@ -91,5 +102,9 @@ contract Event {
 
     function getEventTitle(uint256 eventId) public view validEvent(eventId) returns(string memory) {
         return events[eventId].title;
+    }
+
+    function getAllEvents() public view returns (uint256[] memory) {
+        return allEvents;
     }
 }

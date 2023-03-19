@@ -25,6 +25,7 @@ contract Ticket {
     
     event ticketIssued(uint256 ticketId);
     event ticketExpired(uint256 ticketId);
+    event ticketTransfered(uint256 ticketId);
 
     uint256 numTickets = 0;
     uint256 limitOfOwnershipChange = 1;
@@ -64,7 +65,7 @@ contract Ticket {
     ) public returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active!");
-        
+
         eventContract.addSupply(eventId, quantity);
 
         uint256[] memory res = new uint256[](quantity);
@@ -80,10 +81,9 @@ contract Ticket {
 
             tickets[numTickets] = newTicket;
             res[i] = numTickets;
-            emit ticketIssued(numTickets);
             numTickets++;
         }
-
+        emit ticketIssued(numTickets);
         // Returns array with ticket IDs of all the tickets that have been issued to the requester
         return res;
     }
@@ -94,6 +94,7 @@ contract Ticket {
 
         tickets[ticketId].numberOfOwnershipChanges += 1;
         tickets[ticketId].owner = receiver;
+        emit ticketTransfered(ticketId);
     }
 
     function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck(ticketId) validTicket(ticketId) activeTicket(ticketId) {
