@@ -6,6 +6,9 @@ import "./Ticket.sol";
 SECONDARY MARKET
 1. Listed price is ask price + fee
 2. Fee is sent to admin
+3. All prices are denoted in ETH, except for msg.value
+
+//TODO: Multiple quantity listings?
 */
 contract SecondaryMarket {
     Ticket ticketContract;
@@ -30,7 +33,8 @@ contract SecondaryMarket {
         require(listings[ticketId] != 0, "Ticket has not been listed!");
         _;
     }
-
+    
+    // Ask price in ETH
     function list(uint256 ticketId, uint256 askPrice) public ownerOnly(ticketId) {
         require(ticketContract.checkOwnershipChangeValidity(ticketId), "This ticket cannot be sold due to the limit on changes of ownership!");
         require(askPrice > 0, "Asking price must be non-negative!");
@@ -46,5 +50,18 @@ contract SecondaryMarket {
         return listings[ticketId] + fee;
     }
 
-    
+    function buy(uint256 ticketId) public payable isListed(ticketId) {
+        require(ticketContract.getTicketOwner(ticketId) != msg.sender, "You cannot buy your own ticket!");
+        require(msg.value / 1 ether >= listings[ticketId] + fee, "You do not have sufficient funds!");
+
+        address payable recipient = address(uint160(ticketContract.getTicketOwner(ticketId)));
+        recipient.transfer((listings[ticketId] * 1 ether));
+
+        address payable adminRecipient = address(uint160(admin));
+        adminRecipient.transfer(fee * 1 ether);
+
+        ticketContract.transfer(ticketId, msg.sender);
+
+        delete listings[ticketId];
+    }
 }
