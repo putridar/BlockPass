@@ -11,7 +11,7 @@ contract('Core', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
         ticketInstance = await Ticket.deployed();
-        secondaryMarketInstance = await SecondaryMarket.deployed();
+        secondaryMarketInstance = await SecondaryMarket.deployed(ticketInstance.address, 10);
     });
 
     console.log("-- Testing core functions --");
@@ -47,7 +47,7 @@ contract('Core', function (accounts) {
 
     it("Issue New Ticket", async () => {
         let currSupply = await eventInstance.getSupply(0);
-        let issue = await ticketInstance.issueTickets(0, 10, { from: organizer });
+        let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1 });
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
         let eventSupply = await eventInstance.getSupply(0);
@@ -56,23 +56,35 @@ contract('Core', function (accounts) {
 
     it("Transfer Ticket", async () => {
         await truffleAssert.reverts(
-            ticketInstance.transfer(0, organizer, { from: organizer }),
+            ticketInstance.transfer(0, buyer1, { from: buyer1 }),
             "Cannot transfer ticket to yourself!"
         );
-        let transfer2 = await ticketInstance.transfer(0, buyer1, { from: organizer });
+        let transfer2 = await ticketInstance.transfer(0, buyer2, { from: buyer1 });
         truffleAssert.eventEmitted(transfer2, "ticketTransfered");
-        let owner = await ticketInstance.getTicketOwner(0, { from: buyer1 });
-        assert.strictEqual(owner, buyer1, "Ticket is not transfered!");
+        let owner = await ticketInstance.getTicketOwner(0, { from: buyer2 });
+        assert.strictEqual(owner, buyer2, "Ticket is not transfered!");
     });
 
     it("Check Ticket can only be transfered once", async () => {
         await truffleAssert.reverts(
-            ticketInstance.transfer(0, buyer2, { from: buyer1 }), 
+            ticketInstance.transfer(0, buyer1, { from: buyer2 }), 
             "This ticket's ownership has been changed once before!"
         );
     });
 
     it("List Ticket on Secondary Market", async () => {
+        await truffleAssert.reverts(
+            secondaryMarketInstance.list(1, 100, { from: buyer2 }),
+            "Ticket is not owned by this owner"
+        );
+        await truffleAssert.reverts(
+            secondaryMarketInstance.list(0, 100, { from: buyer2 }),
+            "This ticket cannot be sold due to the limit on changes of ownership!"
+        );
+        await secondaryMarketInstance.list(1, 100, { from: buyer1 });
+        let listingPrice = await secondaryMarketInstance.listings(1);
+
+        assert.equal(listingPrice, 100, "Ticket was not listed at the expected price");
 
     });
 

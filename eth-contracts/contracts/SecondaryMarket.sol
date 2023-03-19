@@ -26,7 +26,7 @@ contract SecondaryMarket {
     mapping (uint256 => uint256) public listings;
 
     modifier ownerOnly(uint256 ticketId) {
-        require(ticketContract.getTicketOwner(ticketId) == msg.sender);
+        require(ticketContract.getTicketOwner(ticketId) == msg.sender, "Ticket is not owned by this owner");
         _;
     }
 
