@@ -40,6 +40,11 @@ contract Ticket {
         _;
     }
 
+    modifier marketTransferCheck(uint256 ticketId) {
+        require(tickets[ticketId].owner == tx.origin);
+        _;
+    }
+
     modifier validTicket(uint256 ticketId) {
         require(ticketId < numTickets, "This ticket does not exists!");
         _;
@@ -87,6 +92,11 @@ contract Ticket {
         require(msg.sender != receiver, "Cannot transfer ticket to yourself!");
         require(tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange, "This ticket's ownership has been changed once before!");
 
+        tickets[ticketId].numberOfOwnershipChanges += 1;
+        tickets[ticketId].owner = receiver;
+    }
+
+    function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck(ticketId) validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].numberOfOwnershipChanges += 1;
         tickets[ticketId].owner = receiver;
     }

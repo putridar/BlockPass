@@ -60,7 +60,7 @@ contract SecondaryMarket {
         address payable adminRecipient = address(uint160(admin));
         adminRecipient.transfer(fee * 1 ether);
 
-        ticketContract.transfer(ticketId, msg.sender);
+        ticketContract.marketTransfer(ticketId, msg.sender);
 
         delete listings[ticketId];
     }
