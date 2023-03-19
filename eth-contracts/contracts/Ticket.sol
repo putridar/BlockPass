@@ -96,4 +96,12 @@ contract Ticket {
         tickets[ticketId].currState = ticketState.expired;
         emit ticketExpired(ticketId);
     }
+
+    function getTicketOwner(uint256 ticketId) public view validTicket(ticketId) returns (address) {
+        return tickets[ticketId].owner;
+    }
+
+    function checkOwnershipChangeValidity(uint256 ticketId) public view validTicket(ticketId) returns (bool) {
+        return tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange;
+    }
 }
