@@ -50,6 +50,7 @@ contract SecondaryMarket {
         return listings[ticketId] + fee;
     }
 
+    //TODO: Debug, smth wrong with payables
     function buy(uint256 ticketId) public payable isListed(ticketId) {
         require(ticketContract.getTicketOwner(ticketId) != msg.sender, "You cannot buy your own ticket!");
         require(msg.value / 1 ether >= listings[ticketId] + fee, "You do not have sufficient funds!");

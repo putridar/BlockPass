@@ -42,9 +42,21 @@ contract('Core', function (accounts) {
 
         let eventIsActive = await eventInstance.eventIsActive(0);
         assert.strictEqual(eventIsActive, true, "Event is not activated!");
-    })
+    });
 
     it("Issue New Ticket", async () => {
 
-    })
+    });
+
+    it("Transfer Ticket", async () => {
+
+    });
+
+    it("List Ticket on Secondary Market", async () => {
+
+    });
+
+    it("Buy Ticket from Secondary Market", async () => {
+
+    });
 });
