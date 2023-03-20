@@ -19,6 +19,7 @@ contract('Core', function (accounts) {
     organizer = accounts[1];
     buyer1 = accounts[2];
     buyer2 = accounts[3];
+    oneEth = 1000000000000000000;
 
     it("Create New Event", async () => {
         truffleAssert.reverts(
@@ -88,6 +89,7 @@ contract('Core', function (accounts) {
     });
 
     it("Buy Ticket from Secondary Market", async () => {
-        
+        let buy = await secondaryMarketInstance.buy(1, { from: buyer2, value: 110 * oneEth })
+        console.log(buy);
     });
 });
