@@ -89,7 +89,23 @@ contract('Core', function (accounts) {
     });
 
     it("Buy Ticket from Secondary Market", async () => {
-        let buy = await secondaryMarketInstance.buy(1, { from: buyer2, value: 3 * oneEth })
-        console.log(buy);
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(0, {from: buyer3, value: oneEth }),
+            "Ticket has not been listed!"
+        );
+
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(1, {from: buyer1, value: oneEth }),
+            "You cannot buy your own ticket!"
+        );
+
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(1, {from: buyer2, value: oneEth }),
+            "You do not have sufficient funds!"
+        );
+
+        await secondaryMarketInstance.buy(1, { from: buyer2, value: 3 * oneEth });
+        
+        assert.equal(ticketContract.getTicketOwner(1), buyer2, "Ticket ownership has not changed!");
     });
 });

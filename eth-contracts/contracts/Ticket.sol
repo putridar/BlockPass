@@ -5,6 +5,8 @@ import "./Event.sol";
 contract Ticket {
     Event eventContract;
     address admin = msg.sender;
+
+    // Market address for verification
     address market = address(0);
 
     enum ticketState {
@@ -117,6 +119,7 @@ contract Ticket {
         return tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange;
     }
 
+    // Sets the market address
     function setMarket(address marketIn) public {
         market = marketIn;
     }
