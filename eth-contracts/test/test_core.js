@@ -19,6 +19,7 @@ contract('Core', function (accounts) {
     organizer = accounts[1];
     buyer1 = accounts[2];
     buyer2 = accounts[3];
+    buyer3 = accounts[4];
     oneEth = 1000000000000000000;
 
     it("Create New Event", async () => {
@@ -88,6 +89,7 @@ contract('Core', function (accounts) {
 
     });
 
+    //TODO: Check ETH balances of admin, buyer1, and buyer2, if possible
     it("Buy Ticket from Secondary Market", async () => {
         await truffleAssert.reverts(
             secondaryMarketInstance.buy(0, {from: buyer3, value: oneEth }),
@@ -105,7 +107,7 @@ contract('Core', function (accounts) {
         );
 
         await secondaryMarketInstance.buy(1, { from: buyer2, value: 3 * oneEth });
-        
-        assert.equal(ticketContract.getTicketOwner(1), buyer2, "Ticket ownership has not changed!");
+        let newOwner = await ticketInstance.getTicketOwner(1)
+        assert.equal(newOwner, buyer2, "Ticket ownership has not changed!");
     });
 });
