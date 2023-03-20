@@ -9,6 +9,6 @@ module.exports = (deployer, network, accounts) => {
     return deployer.deploy(Ticket, Event.address);
   })
   .then(function() {
-    return deployer.deploy(SecondaryMarket, Ticket.address, 10);
+    return deployer.deploy(SecondaryMarket, Ticket.address, 1);
   });
 };

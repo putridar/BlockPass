@@ -19,6 +19,8 @@ contract SecondaryMarket {
     constructor(Ticket ticketContractIn, uint256 feeIn) public {
         ticketContract = ticketContractIn;
         fee = feeIn;
+
+        ticketContract.setMarket(address(this));
     }
 
     event marketTransaction(uint256 ticketId);
@@ -58,10 +60,10 @@ contract SecondaryMarket {
 
         address payable recipient = address(uint160(ticketContract.getTicketOwner(ticketId)));
         recipient.transfer(listings[ticketId] * oneEth);
-
+        
         address payable adminRecipient = address(uint160(admin));
         adminRecipient.transfer(fee * oneEth);
-
+        
         ticketContract.marketTransfer(ticketId, msg.sender);
 
         delete listings[ticketId];

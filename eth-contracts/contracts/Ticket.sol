@@ -5,6 +5,7 @@ import "./Event.sol";
 contract Ticket {
     Event eventContract;
     address admin = msg.sender;
+    address market = address(0);
 
     enum ticketState {
         active,
@@ -41,8 +42,8 @@ contract Ticket {
         _;
     }
 
-    modifier marketTransferCheck(uint256 ticketId) {
-        require(tickets[ticketId].owner == tx.origin);
+    modifier marketTransferCheck() {
+        require(market == msg.sender);
         _;
     }
 
@@ -97,7 +98,7 @@ contract Ticket {
         emit ticketTransfered(ticketId);
     }
 
-    function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck(ticketId) validTicket(ticketId) activeTicket(ticketId) {
+    function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck() validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].numberOfOwnershipChanges += 1;
         tickets[ticketId].owner = receiver;
     }
@@ -114,5 +115,9 @@ contract Ticket {
 
     function checkOwnershipChangeValidity(uint256 ticketId) public view validTicket(ticketId) returns (bool) {
         return tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange;
+    }
+
+    function setMarket(address marketIn) public {
+        market = marketIn;
     }
 }

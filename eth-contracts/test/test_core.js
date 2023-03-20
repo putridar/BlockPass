@@ -75,21 +75,21 @@ contract('Core', function (accounts) {
 
     it("List Ticket on Secondary Market", async () => {
         await truffleAssert.reverts(
-            secondaryMarketInstance.list(1, 100, { from: buyer2 }),
+            secondaryMarketInstance.list(1, 2, { from: buyer2 }),
             "Ticket is not owned by this owner"
         );
         await truffleAssert.reverts(
-            secondaryMarketInstance.list(0, 100, { from: buyer2 }),
+            secondaryMarketInstance.list(0, 2, { from: buyer2 }),
             "This ticket cannot be sold due to the limit on changes of ownership!"
         );
-        await secondaryMarketInstance.list(1, 100, { from: buyer1 });
+        await secondaryMarketInstance.list(1, 2, { from: buyer1 });
         let listingPrice = await secondaryMarketInstance.checkPrice(1);
-        assert.equal(listingPrice.words[0], 110, "Ticket was not listed at the expected price");
+        assert.equal(listingPrice.words[0], 3, "Ticket was not listed at the expected price");
 
     });
 
     it("Buy Ticket from Secondary Market", async () => {
-        let buy = await secondaryMarketInstance.buy(1, { from: buyer2, value: 110 * oneEth })
+        let buy = await secondaryMarketInstance.buy(1, { from: buyer2, value: 3 * oneEth })
         console.log(buy);
     });
 });
