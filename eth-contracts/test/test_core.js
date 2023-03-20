@@ -11,7 +11,7 @@ contract('Core', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
         ticketInstance = await Ticket.deployed();
-        secondaryMarketInstance = await SecondaryMarket.deployed(ticketInstance.address, 10);
+        secondaryMarketInstance = await SecondaryMarket.deployed();
     });
 
     console.log("-- Testing core functions --");
@@ -82,13 +82,12 @@ contract('Core', function (accounts) {
             "This ticket cannot be sold due to the limit on changes of ownership!"
         );
         await secondaryMarketInstance.list(1, 100, { from: buyer1 });
-        let listingPrice = await secondaryMarketInstance.listings(1);
-
-        assert.equal(listingPrice, 100, "Ticket was not listed at the expected price");
+        let listingPrice = await secondaryMarketInstance.checkPrice(1);
+        assert.equal(listingPrice.words[0], 110, "Ticket was not listed at the expected price");
 
     });
 
     it("Buy Ticket from Secondary Market", async () => {
-
+        
     });
 });

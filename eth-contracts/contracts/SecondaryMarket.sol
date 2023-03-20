@@ -57,7 +57,7 @@ contract SecondaryMarket {
         require(msg.value / oneEth >= listings[ticketId] + fee, "You do not have sufficient funds!");
 
         address payable recipient = address(uint160(ticketContract.getTicketOwner(ticketId)));
-        recipient.transfer((listings[ticketId] * oneEth));
+        recipient.transfer(listings[ticketId] * oneEth);
 
         address payable adminRecipient = address(uint160(admin));
         adminRecipient.transfer(fee * oneEth);
@@ -65,5 +65,9 @@ contract SecondaryMarket {
         ticketContract.marketTransfer(ticketId, msg.sender);
 
         delete listings[ticketId];
+    }
+
+    function getFee() public view returns (uint256) {
+        return fee;
     }
 }
