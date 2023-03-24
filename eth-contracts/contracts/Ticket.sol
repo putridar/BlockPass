@@ -20,6 +20,7 @@ contract Ticket {
         address owner;
         ticketState currState;
         uint256 numberOfOwnershipChanges;
+        uint256 expiry;
     }
 
     constructor(Event eventContractIn) public {
@@ -55,6 +56,10 @@ contract Ticket {
     }
 
     modifier activeTicket(uint256 ticketId) {
+        if (eventContract.getExpiry(tickets[ticketId].eventId) < now) {
+            tickets[ticketId].currState == ticketState.expired;
+            emit ticketExpired(ticketId);
+        }
         require(
             tickets[ticketId].currState == ticketState.active,
             "This ticket has expired!"
@@ -67,7 +72,7 @@ contract Ticket {
         uint256 quantity
     ) public returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
-        require(eventContract.eventIsActive(eventId), "Event is not active!");
+        require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
 
         eventContract.addSupply(eventId, quantity);
 
@@ -79,7 +84,8 @@ contract Ticket {
                 eventId,
                 msg.sender,
                 ticketState.active,
-                0
+                0,
+                eventContract.getExpiry(eventId)
             );
 
             tickets[numTickets] = newTicket;
@@ -103,12 +109,6 @@ contract Ticket {
     function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck() validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].numberOfOwnershipChanges += 1;
         tickets[ticketId].owner = receiver;
-    }
-
-    //TODO: adminOnly?
-    function expireTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
-        tickets[ticketId].currState = ticketState.expired;
-        emit ticketExpired(ticketId);
     }
 
     function getTicketOwner(uint256 ticketId) public view validTicket(ticketId) returns (address) {

@@ -23,20 +23,32 @@ contract('Core', function (accounts) {
     oneEth = 1000000000000000000;
 
     it("Create New Event", async () => {
+        const now = new Date();
+        const expiry = Math.floor(now.getTime() / 1000) + 10000;
         truffleAssert.reverts(
-            eventInstance.createEvent("", 100, { from: organizer }),
+            eventInstance.createEvent("", 100, expiry, { from: organizer }),
             "Event title cannot not be empty!"
         );
 
         truffleAssert.reverts(
-            eventInstance.createEvent("Katy Perry's Concert", 0, { from: organizer }),
+            eventInstance.createEvent("Katy Perry's Concert", 0, expiry, { from: organizer }),
             "Maximum ticket supply must be more than 0!"
         );
 
-        await eventInstance.createEvent("Katy Perry's Concert", 1000, { from: organizer });
+        truffleAssert.reverts(
+            eventInstance.createEvent("Katy Perry's Concert", 1000, Math.floor(now.getTime() / 1000) - 10000, { from: organizer }),
+            "Cannot create an expired event"
+        );
 
-        let eventTitle = await eventInstance.getEventTitle(0);
-        assert.strictEqual(eventTitle, "Katy Perry's Concert", "The event title does not match!");
+        await eventInstance.createEvent("Katy Perry's Concert", 1000, expiry, { from: organizer });
+
+        let eventTitle1 = await eventInstance.getEventTitle(0);
+        assert.strictEqual(eventTitle1, "Katy Perry's Concert", "The event title does not match!");
+
+        await eventInstance.createEvent("BTS Concert", 1000, expiry, { from: organizer });
+
+        let eventTitle2 = await eventInstance.getEventTitle(1);
+        assert.strictEqual(eventTitle2, "BTS Concert", "The event title does not match!");
     });
 
     it("Activate Event", async () => {
@@ -49,6 +61,14 @@ contract('Core', function (accounts) {
 
     it("Issue New Ticket", async () => {
         let currSupply = await eventInstance.getSupply(0);
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(100, 10, { from: buyer1 }),
+            "Event does not exists!"
+        );
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(1, 10, { from: buyer1 }),
+            "Event is not active or has expired!"
+        );
         let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1 });
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
