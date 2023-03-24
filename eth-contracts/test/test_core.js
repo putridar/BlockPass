@@ -24,7 +24,7 @@ contract('Core', function (accounts) {
 
     it("Create New Event", async () => {
         const now = new Date();
-        const expiry = Math.floor(now.getTime() / 1000) + 10000;
+        const expiry = Math.floor(now.getTime() / 1000) + 100000;
         truffleAssert.reverts(
             eventInstance.createEvent("", 100, expiry, { from: organizer }),
             "Event title cannot not be empty!"

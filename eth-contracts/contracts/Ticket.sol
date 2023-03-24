@@ -106,6 +106,11 @@ contract Ticket {
         emit ticketTransfered(ticketId);
     }
 
+    function useTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
+        tickets[ticketId].currState = ticketState.expired;
+        emit ticketExpired(ticketId);
+    }
+
     function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck() validTicket(ticketId) activeTicket(ticketId) {
         tickets[ticketId].numberOfOwnershipChanges += 1;
         tickets[ticketId].owner = receiver;
