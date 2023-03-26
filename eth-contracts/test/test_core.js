@@ -26,26 +26,26 @@ contract('Core', function (accounts) {
         const now = new Date();
         const expiry = Math.floor(now.getTime() / 1000) + 100000;
         truffleAssert.reverts(
-            eventInstance.createEvent("", 100, expiry, { from: organizer }),
+            eventInstance.createEvent("", 100, 2, expiry, { from: organizer }),
             "Event title cannot not be empty!"
         );
 
         truffleAssert.reverts(
-            eventInstance.createEvent("Katy Perry's Concert", 0, expiry, { from: organizer }),
+            eventInstance.createEvent("Katy Perry's Concert", 0, 2, expiry, { from: organizer }),
             "Maximum ticket supply must be more than 0!"
         );
 
         truffleAssert.reverts(
-            eventInstance.createEvent("Katy Perry's Concert", 1000, Math.floor(now.getTime() / 1000) - 10000, { from: organizer }),
+            eventInstance.createEvent("Katy Perry's Concert", 1000, 2, Math.floor(now.getTime() / 1000) - 10000, { from: organizer }),
             "Cannot create an expired event"
         );
 
-        await eventInstance.createEvent("Katy Perry's Concert", 1000, expiry, { from: organizer });
+        await eventInstance.createEvent("Katy Perry's Concert", 1000, 2, expiry, { from: organizer });
 
         let eventTitle1 = await eventInstance.getEventTitle(0);
         assert.strictEqual(eventTitle1, "Katy Perry's Concert", "The event title does not match!");
 
-        await eventInstance.createEvent("BTS Concert", 1000, expiry, { from: organizer });
+        await eventInstance.createEvent("BTS Concert", 1000, 2, expiry, { from: organizer });
 
         let eventTitle2 = await eventInstance.getEventTitle(1);
         assert.strictEqual(eventTitle2, "BTS Concert", "The event title does not match!");

@@ -11,6 +11,7 @@ contract Event {
         address organizer;
         uint256 maxTicketSupply;
         uint256 currTicketSupply;
+        uint256 standardPrice; // in ETH
         eventState currState;
         uint256 expiry;
     }
@@ -58,6 +59,7 @@ contract Event {
     function createEvent(
         string memory title,
         uint256 maxTicketSupply,
+        uint256 standardPrice,
         uint256 date
     ) public returns(uint256) {
         require(keccak256(abi.encodePacked(title)) != keccak256(abi.encodePacked("")), "Event title cannot not be empty!"); //Workaround for string comparison
@@ -69,6 +71,7 @@ contract Event {
             msg.sender,
             maxTicketSupply,
             0,
+            standardPrice,
             eventState.inactive,
             date
         );
@@ -111,6 +114,10 @@ contract Event {
 
     function getEventTitle(uint256 eventId) public view validEvent(eventId) returns(string memory) {
         return events[eventId].title;
+    }
+
+    function getStandardPrice(uint256 eventId) public view validEvent(eventId) returns(uint256) {
+        return events[eventId].standardPrice;
     }
 
     function getAllEvents() public view returns (uint256[] memory) {

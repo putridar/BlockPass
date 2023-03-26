@@ -35,6 +35,8 @@ contract Ticket {
     uint256 limitOfOwnershipChange = 1;
     mapping(uint256 => ticket) public tickets;
 
+    uint256 oneEth = 1000000000000000000;
+
     modifier adminOnly() {
         require(admin == msg.sender, "Only admins can run this function!");
         _;
@@ -70,11 +72,22 @@ contract Ticket {
     function issueTickets(
         uint256 eventId,
         uint256 quantity
-    ) public returns (uint256[] memory) {
+    ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
 
+        uint256 standardPrice = eventContract.getStandardPrice(eventId);
+        uint256 totalPrice = standardPrice * quantity;
+
+        require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
+
+        // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
+
+        address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
+        recipient.transfer(totalPrice * oneEth);
+
+        //Commission fee for ticket sales?
 
         uint256[] memory res = new uint256[](quantity);
 
