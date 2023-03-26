@@ -61,15 +61,23 @@ contract('Core', function (accounts) {
 
     it("Issue New Ticket", async () => {
         let currSupply = await eventInstance.getSupply(0);
+
         truffleAssert.reverts(
             ticketInstance.issueTickets(100, 10, { from: buyer1 }),
             "Event does not exists!"
         );
+
         truffleAssert.reverts(
             ticketInstance.issueTickets(1, 10, { from: buyer1 }),
             "Event is not active or has expired!"
         );
-        let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1 });
+
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(0, 10, { from: buyer1, value: 1 * oneEth }),
+            "Insufficient funds to buy this ticket!"
+        )
+
+        let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1, value: 20 * oneEth });
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
         let eventSupply = await eventInstance.getSupply(0);
