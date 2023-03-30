@@ -12,3 +12,6 @@
 3. Click `Generate new private key`
 4. Rename the downloaded file to `firebase-config.json`
 5. Move `firebase-config.json` to `back` directory
+6. Create `.env` file
+7. Copy and paste `FSALT_ROUNDS=10` and `JWT_PRIVATE_KEY=Bl4ckP455` into the file
+
