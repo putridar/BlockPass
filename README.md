@@ -1,5 +1,11 @@
 # BlockPass
 
+## To setup frontend
+1. cd to `front`
+2. Run `npm install`
+3. Create `.env` file
+4. Copy and paste `REACT_APP_USER_API=http://localhost:8000/api/user` into the file
+
 ## To setup the backend
 1. Go to `https://console.firebase.google.com/u/1/project/blockpass-17/settings/serviceaccounts/adminsdk`
 2. Click `Firebase Admin SDK`
