@@ -59,7 +59,7 @@ contract Ticket {
 
     modifier activeTicket(uint256 ticketId) {
         if (eventContract.getExpiry(tickets[ticketId].eventId) < now) {
-            tickets[ticketId].currState == ticketState.expired;
+            tickets[ticketId].currState = ticketState.expired;
             emit ticketExpired(ticketId);
         }
         require(

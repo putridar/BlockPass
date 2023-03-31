@@ -46,7 +46,7 @@ contract Event {
 
     modifier activeEvent(uint256 eventId) {
         if (events[eventId].expiry > now) {
-            events[eventId].currState == eventState.expired;
+            events[eventId].currState = eventState.expired;
             emit eventExpired(eventId);
         }
         require(
