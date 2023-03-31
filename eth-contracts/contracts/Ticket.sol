@@ -1,9 +1,11 @@
 pragma solidity ^0.5.0;
 
 import "./Event.sol";
+import "./TickToken.sol";
 
 contract Ticket {
     Event eventContract;
+    TickToken tokenContract;
     address admin = msg.sender;
 
     // Market address for verification
@@ -12,6 +14,13 @@ contract Ticket {
     enum ticketState {
         active,
         expired
+    }
+
+    enum userTier {
+        bronze,
+        silver,
+        gold,
+        diamond
     }
 
     struct ticket {
@@ -23,8 +32,16 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn) public {
+    struct discount {
+        uint256 discountId;
+        uint256 discountPercentage;
+        address owner;
+        bool isUsed;
+    }
+
+    constructor(Event eventContractIn, TickToken tokenContractIn) public {
         eventContract = eventContractIn;
+        tokenContract = tokenContractIn;
     }
     
     event ticketIssued(uint256 ticketId);
@@ -32,8 +49,14 @@ contract Ticket {
     event ticketTransfered(uint256 ticketId);
 
     uint256 numTickets = 0;
+    uint256 numDiscounts = 0;
     uint256 limitOfOwnershipChange = 1;
     mapping(uint256 => ticket) public tickets;
+
+    mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
+    mapping(address => userTier) public userTiers; //Tracking each user's tier
+    mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
+    mapping(address => mapping(uint256 => discount)) public discounts; //To see discounts that each user has
 
     uint256 oneEth = 1000000000000000000;
 
@@ -84,6 +107,7 @@ contract Ticket {
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
 
+        //TODO : INCLUDE DISCOUNT HERE. PROBABLY PASS DISCOUNT ID AS THE FUNCITON PARAMETER.
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
         recipient.transfer(totalPrice * oneEth);
 
@@ -105,6 +129,17 @@ contract Ticket {
             res[i] = numTickets;
             numTickets++;
         }
+
+        // Update the #transactions of the user
+        uint256 totalTransactions = noOfTransactions[msg.sender] + 1;
+        noOfTransactions[msg.sender] = totalTransactions;
+
+        //Update User tier based on noOfTransactions
+        updateTier(msg.sender);
+
+        // Give tokens (part of loyalty program)
+        tokenContract.mintToken(msg.sender, quantity);
+
         emit ticketIssued(numTickets);
         // Returns array with ticket IDs of all the tickets that have been issued to the requester
         return res;
@@ -140,5 +175,35 @@ contract Ticket {
     // Sets the market address
     function setMarket(address marketIn) public {
         market = marketIn;
+    }
+
+    function updateTier(address user) public {
+        uint256 transaction = noOfTransactions[user];
+
+        if (transaction < 10) {
+            userTiers[user] = userTier.bronze;
+        } else if (transaction < 50) {
+            userTiers[user] = userTier.silver;
+        } else if (transaction < 100) {
+            userTiers[user] = userTier.gold;
+        } else if (transaction < 300) {
+            userTiers[user] = userTier.diamond;
+        }
+    }
+
+    function redeemToken() public {
+        require(tokenContract.checkCredit(msg.sender) > 10, "Need at least 10 tokens to redeem a discount!");
+
+        discount memory newDiscount = discount(
+            numDiscounts,
+            10,
+            msg.sender,
+            false
+        );
+
+        discounts[msg.sender][numDiscounts] = newDiscount;
+        tokenContract.transferCredit(msg.sender, address(this), 10);
+
+        numDiscounts++;
     }
 }
