@@ -54,9 +54,8 @@ contract Ticket {
     mapping(uint256 => ticket) public tickets;
 
     mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
-    mapping(address => uint256) public noOfTickets; //Tracking how many tickets each user has bought
     mapping(address => userTier) public userTiers; //Tracking each user's tier
-    mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier
+    mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
     mapping(address => mapping(uint256 => discount)) public discounts; //To see discounts that each user has
 
     uint256 oneEth = 1000000000000000000;
@@ -131,12 +130,9 @@ contract Ticket {
             numTickets++;
         }
 
-        // Update the transactions and the ticket amount of the user
-        totalTransactions = noOfTransactions[msg.sender] + 1;
+        // Update the #transactions of the user
+        uint256 totalTransactions = noOfTransactions[msg.sender] + 1;
         noOfTransactions[msg.sender] = totalTransactions;
-
-        totalTicketsBought = noOfTickets[msg.sender] + quantity;
-        noOfTickets[msg.sender] = totalTicketsBought;
 
         //Update User tier based on noOfTransactions
         updateTier(msg.sender);
@@ -182,16 +178,16 @@ contract Ticket {
     }
 
     function updateTier(address user) public {
-        transaction = noOfTransactions[user];
+        uint256 transaction = noOfTransactions[user];
 
         if (transaction < 10) {
-            userTier[user] = userTiers.bronze;
+            userTiers[user] = userTier.bronze;
         } else if (transaction < 50) {
-            userTier[user] = userTiers.silver;
+            userTiers[user] = userTier.silver;
         } else if (transaction < 100) {
-            userTier[user] = userTiers.gold;
+            userTiers[user] = userTier.gold;
         } else if (transaction < 300) {
-            userTier[user] = userTiers.diamond;
+            userTiers[user] = userTier.diamond;
         }
     }
 
@@ -205,8 +201,8 @@ contract Ticket {
             false
         );
 
-        discounts[msg.sender][numDiscounts] = discount;
-        tokenContract.transferCredit(this, 10);
+        discounts[msg.sender][numDiscounts] = newDiscount;
+        tokenContract.transferCredit(msg.sender, address(this), 10);
 
         numDiscounts++;
     }
