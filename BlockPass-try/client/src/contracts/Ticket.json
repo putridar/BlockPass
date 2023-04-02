@@ -1,0 +1,261 @@
+{
+  "contractName": "Ticket",
+  "abi": [],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/Ticket.sol\":\"Ticket\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/Ticket.sol\":{\"keccak256\":\"0x242003e4d74385d80c7f5761ae0ccdaf6371ee1c2009b2d18811822b4c3c165c\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6955bef2e068a9519eec55bfeaad138d2b8ca3b661b6135d63fbd400df3a56c0\",\"dweb:/ipfs/QmU2gcAx4pqtMtRVZu8jkBCx7MN6fGTVF2cHKNBFtc3Axq\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212200c0269ac5d935e27dc028f8477cf6437cfc5f092c5dc5c817ee38316936266b164736f6c63430008130033",
+  "deployedBytecode": "0x6080604052600080fdfea26469706673582212200c0269ac5d935e27dc028f8477cf6437cfc5f092c5dc5c817ee38316936266b164736f6c63430008130033",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "69:252:3:-:0;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "69:252:3:-:0;;;;;",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity >=0.4.22 <0.9.0;\r\n\r\ncontract Ticket {\r\n    enum ticketState { active, expired }\r\n\r\n    struct ticket {\r\n        uint256 ticketId;\r\n        uint256 eventId;\r\n        address owner;\r\n        ticketState currState;\r\n        uint256 numberOfOwnershipChanges;\r\n    }\r\n\r\n    \r\n}",
+  "sourcePath": "C:\\Users\\PRAWIRA SATYA DARMA\\Documents\\Year4Sem2\\IS4302\\BlockPass-try\\contracts\\Ticket.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/Ticket.sol",
+    "exportedSymbols": {
+      "Ticket": [
+        255
+      ]
+    },
+    "id": 256,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 239,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".22",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "33:32:3"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "Ticket",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "id": 255,
+        "linearizedBaseContracts": [
+          255
+        ],
+        "name": "Ticket",
+        "nameLocation": "78:6:3",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "Ticket.ticketState",
+            "id": 242,
+            "members": [
+              {
+                "id": 240,
+                "name": "active",
+                "nameLocation": "111:6:3",
+                "nodeType": "EnumValue",
+                "src": "111:6:3"
+              },
+              {
+                "id": 241,
+                "name": "expired",
+                "nameLocation": "119:7:3",
+                "nodeType": "EnumValue",
+                "src": "119:7:3"
+              }
+            ],
+            "name": "ticketState",
+            "nameLocation": "97:11:3",
+            "nodeType": "EnumDefinition",
+            "src": "92:36:3"
+          },
+          {
+            "canonicalName": "Ticket.ticket",
+            "id": 254,
+            "members": [
+              {
+                "constant": false,
+                "id": 244,
+                "mutability": "mutable",
+                "name": "ticketId",
+                "nameLocation": "169:8:3",
+                "nodeType": "VariableDeclaration",
+                "scope": 254,
+                "src": "161:16:3",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 243,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "161:7:3",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 246,
+                "mutability": "mutable",
+                "name": "eventId",
+                "nameLocation": "196:7:3",
+                "nodeType": "VariableDeclaration",
+                "scope": 254,
+                "src": "188:15:3",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 245,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "188:7:3",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 248,
+                "mutability": "mutable",
+                "name": "owner",
+                "nameLocation": "222:5:3",
+                "nodeType": "VariableDeclaration",
+                "scope": 254,
+                "src": "214:13:3",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 247,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "214:7:3",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 251,
+                "mutability": "mutable",
+                "name": "currState",
+                "nameLocation": "250:9:3",
+                "nodeType": "VariableDeclaration",
+                "scope": 254,
+                "src": "238:21:3",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_enum$_ticketState_$242",
+                  "typeString": "enum Ticket.ticketState"
+                },
+                "typeName": {
+                  "id": 250,
+                  "nodeType": "UserDefinedTypeName",
+                  "pathNode": {
+                    "id": 249,
+                    "name": "ticketState",
+                    "nameLocations": [
+                      "238:11:3"
+                    ],
+                    "nodeType": "IdentifierPath",
+                    "referencedDeclaration": 242,
+                    "src": "238:11:3"
+                  },
+                  "referencedDeclaration": 242,
+                  "src": "238:11:3",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_enum$_ticketState_$242",
+                    "typeString": "enum Ticket.ticketState"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 253,
+                "mutability": "mutable",
+                "name": "numberOfOwnershipChanges",
+                "nameLocation": "278:24:3",
+                "nodeType": "VariableDeclaration",
+                "scope": 254,
+                "src": "270:32:3",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 252,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "270:7:3",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "ticket",
+            "nameLocation": "143:6:3",
+            "nodeType": "StructDefinition",
+            "scope": 255,
+            "src": "136:174:3",
+            "visibility": "public"
+          }
+        ],
+        "scope": 256,
+        "src": "69:252:3",
+        "usedErrors": []
+      }
+    ],
+    "src": "33:288:3"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.19+commit.7dd6d404.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.11",
+  "updatedAt": "2023-03-26T10:36:24.977Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}
