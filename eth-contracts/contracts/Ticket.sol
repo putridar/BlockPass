@@ -32,13 +32,6 @@ contract Ticket {
         uint256 expiry;
     }
 
-    struct discount {
-        uint256 discountId;
-        uint256 discountPercentage;
-        address owner;
-        bool isUsed;
-    }
-
     constructor(Event eventContractIn, TickToken tokenContractIn) public {
         eventContract = eventContractIn;
         tokenContract = tokenContractIn;
@@ -47,16 +40,17 @@ contract Ticket {
     event ticketIssued(uint256 ticketId);
     event ticketExpired(uint256 ticketId);
     event ticketTransfered(uint256 ticketId);
+    event tokenRedeemed(uint256 token);
 
     uint256 numTickets = 0;
     uint256 numDiscounts = 0;
     uint256 limitOfOwnershipChange = 1;
+    uint256 baseDiscount = 200;
     mapping(uint256 => ticket) public tickets;
 
     mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
     mapping(address => userTier) public userTiers; //Tracking each user's tier
     mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
-    mapping(address => mapping(uint256 => discount)) public discounts; //To see discounts that each user has
 
     uint256 oneEth = 1000000000000000000;
 
@@ -82,7 +76,7 @@ contract Ticket {
 
     modifier activeTicket(uint256 ticketId) {
         if (eventContract.getExpiry(tickets[ticketId].eventId) < now) {
-            tickets[ticketId].currState == ticketState.expired;
+            tickets[ticketId].currState = ticketState.expired;
             emit ticketExpired(ticketId);
         }
         require(
@@ -94,11 +88,14 @@ contract Ticket {
 
     function issueTickets(
         uint256 eventId,
-        uint256 quantity
+        uint256 quantity,
+        bool redeem,
+        uint256 tokenToBeRedeemed
     ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
-
+        require(!redeem || (redeem && tokenToBeRedeemed != 0), "Token to be redeemed cannot be 0");
+        require(!redeem || (redeem && (tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed)), "User does not have sufficient token");
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
 
@@ -109,7 +106,13 @@ contract Ticket {
 
         //TODO : INCLUDE DISCOUNT HERE. PROBABLY PASS DISCOUNT ID AS THE FUNCITON PARAMETER.
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
-        recipient.transfer(totalPrice * oneEth);
+        uint256 price = totalPrice * oneEth;
+        if (redeem) {
+            price = price * (1 - (tokenToBeRedeemed/baseDiscount));
+            tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+            emit tokenRedeemed(tokenToBeRedeemed);
+        }
+        recipient.transfer(price);
 
         //Commission fee for ticket sales?
 
@@ -131,7 +134,7 @@ contract Ticket {
         }
 
         // Update the #transactions of the user
-        uint256 totalTransactions = noOfTransactions[msg.sender] + 1;
+        uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
         noOfTransactions[msg.sender] = totalTransactions;
 
         //Update User tier based on noOfTransactions
@@ -191,19 +194,11 @@ contract Ticket {
         }
     }
 
-    function redeemToken() public {
-        require(tokenContract.checkCredit(msg.sender) > 10, "Need at least 10 tokens to redeem a discount!");
+    function getTier(address user) public view returns (userTier) {
+        return userTiers[user];
+    }
 
-        discount memory newDiscount = discount(
-            numDiscounts,
-            10,
-            msg.sender,
-            false
-        );
-
-        discounts[msg.sender][numDiscounts] = newDiscount;
-        tokenContract.transferCredit(msg.sender, address(this), 10);
-
-        numDiscounts++;
+    function getToken(address user) public view returns (uint256) {
+        return tokenContract.checkCredit(user);
     }
 }
