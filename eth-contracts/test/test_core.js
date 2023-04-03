@@ -22,6 +22,7 @@ contract('Core', function (accounts) {
     buyer1 = accounts[2];
     buyer2 = accounts[3];
     buyer3 = accounts[4];
+    buyer4 = accounts[5];
     oneEth = 1000000000000000000;
 
     it("Create New Event", async () => {
@@ -91,6 +92,33 @@ contract('Core', function (accounts) {
             ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth }), 
             "This user has hit their ticket issuance limit!"
         );
+    });
+
+    it("Check BlockTier loyalty program", async () => {
+        let initialAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
+        assert.strictEqual(initialAdditionalIssuanceLimit.words[0], 0, "The tiers are not initialized correctly!");
+
+        const now = new Date();
+        const expiry = Math.floor(now.getTime() / 1000) + 100000;
+        await eventInstance.createEvent("Burner Event 1", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(2, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 2", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(3, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 3", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(4, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 4", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(5, { from: organizer });
+
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(3, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(4, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(5, 2, { from: buyer4, value: 4 * oneEth });
+
+        let finalAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
+        assert.strictEqual(finalAdditionalIssuanceLimit.words[0], 2, "The tiers are not upgraded correctly!");
     });
 
     it("Transfer Ticket", async () => {

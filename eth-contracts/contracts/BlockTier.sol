@@ -30,11 +30,11 @@ contract BlockTier {
     function addTicketsBought(address user, uint256 quantity) public {
         ticketsBought[user] += quantity;
 
-        if (ticketsBought[user] > 3 * tierRange) {
+        if (ticketsBought[user] >= 3 * tierRange) {
             userTiers[user] = tier.diamond;
-        } else if (ticketsBought[user] > 2 * tierRange) {
+        } else if (ticketsBought[user] >= 2 * tierRange) {
             userTiers[user] = tier.gold;
-        } else if (ticketsBought[user] > tierRange) {
+        } else if (ticketsBought[user] >= tierRange) {
             userTiers[user] = tier.silver;
         }
     }
