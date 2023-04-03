@@ -93,6 +93,7 @@ contract Ticket {
 
         // Records additional tickets that have been issued for this user
         ticketsIssued[eventId][msg.sender]+= quantity;
+        blockTierContract.addTicketsBought(msg.sender, quantity);
 
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
         recipient.transfer(totalPrice * oneEth);
@@ -154,8 +155,9 @@ contract Ticket {
 
     function checkTicketsIssued(uint256 eventId, address purchaser, uint256 quantity) public view returns (bool) {
         uint256 currentQuantity = ticketsIssued[eventId][purchaser];
+        uint256 additionalLimit = blockTierContract.getAdditionalIssuanceLimit(purchaser);
 
-        if (currentQuantity + quantity > baseIssuanceLimit) {
+        if (currentQuantity + quantity > baseIssuanceLimit + additionalLimit) {
             return false;
         }
 
