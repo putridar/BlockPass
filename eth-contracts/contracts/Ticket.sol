@@ -2,10 +2,13 @@ pragma solidity ^0.5.0;
 
 import "./Event.sol";
 import "./TickToken.sol";
+import "./BlockTier.sol";
 
 contract Ticket {
     Event eventContract;
+    BlockTier blockTierContract;
     TickToken tokenContract;
+    uint256 baseIssuanceLimit;
     address admin = msg.sender;
 
     // Market address for verification
@@ -32,21 +35,25 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn, TickToken tokenContractIn) public {
+    constructor(Event eventContractIn, BlockTier blockTierContractIn, TickToken tokenContractIn, uint256 baseIssuanceLimitIn) public {
         eventContract = eventContractIn;
+        blockTierContract = blockTierContractIn;
         tokenContract = tokenContractIn;
+        baseIssuanceLimit = baseIssuanceLimitIn;
     }
     
     event ticketIssued(uint256 ticketId);
     event ticketExpired(uint256 ticketId);
     event ticketTransfered(uint256 ticketId);
     event tokenRedeemed(uint256 token);
+    event debug(string str);
 
     uint256 numTickets = 0;
     uint256 numDiscounts = 0;
     uint256 limitOfOwnershipChange = 1;
     uint256 baseDiscount = 200;
     mapping(uint256 => ticket) public tickets;
+    mapping(uint256 => mapping(address => uint256)) ticketsIssued; // Event ID => User ID => Number of tickets issued
 
     mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
     mapping(address => userTier) public userTiers; //Tracking each user's tier
@@ -96,15 +103,20 @@ contract Ticket {
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
         require(!redeem || (redeem && tokenToBeRedeemed != 0), "Token to be redeemed cannot be 0");
         require(!redeem || (redeem && (tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed)), "User does not have sufficient token");
+        require(checkTicketsIssued(eventId, msg.sender, quantity), "This user has hit their ticket issuance limit!");
+        emit debug("require");
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
-
+        emit debug("standard");
         require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
-
-        //TODO : INCLUDE DISCOUNT HERE. PROBABLY PASS DISCOUNT ID AS THE FUNCITON PARAMETER.
+        emit debug("add supply");
+        // Records additional tickets that have been issued for this user
+        ticketsIssued[eventId][msg.sender]+= quantity;
+        blockTierContract.addTicketsBought(msg.sender, quantity);
+        emit debug("add ticketbought");
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
         uint256 price = totalPrice * oneEth;
         if (redeem) {
@@ -113,7 +125,7 @@ contract Ticket {
             emit tokenRedeemed(tokenToBeRedeemed);
         }
         recipient.transfer(price);
-
+        emit debug("transfer");
         //Commission fee for ticket sales?
 
         uint256[] memory res = new uint256[](quantity);
@@ -136,10 +148,7 @@ contract Ticket {
         // Update the #transactions of the user
         uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
         noOfTransactions[msg.sender] = totalTransactions;
-
-        //Update User tier based on noOfTransactions
-        updateTier(msg.sender);
-
+        emit debug("update");
         // Give tokens (part of loyalty program)
         tokenContract.mintToken(msg.sender, quantity);
 
@@ -180,25 +189,18 @@ contract Ticket {
         market = marketIn;
     }
 
-    function updateTier(address user) public {
-        uint256 transaction = noOfTransactions[user];
-
-        if (transaction < 10) {
-            userTiers[user] = userTier.bronze;
-        } else if (transaction < 50) {
-            userTiers[user] = userTier.silver;
-        } else if (transaction < 100) {
-            userTiers[user] = userTier.gold;
-        } else if (transaction < 300) {
-            userTiers[user] = userTier.diamond;
-        }
-    }
-
-    function getTier(address user) public view returns (userTier) {
-        return userTiers[user];
-    }
-
     function getToken(address user) public view returns (uint256) {
         return tokenContract.checkCredit(user);
+    }
+    
+    function checkTicketsIssued(uint256 eventId, address purchaser, uint256 quantity) public view returns (bool) {
+        uint256 currentQuantity = ticketsIssued[eventId][purchaser];
+        uint256 additionalLimit = blockTierContract.getAdditionalIssuanceLimit(purchaser);
+
+        if (currentQuantity + quantity > baseIssuanceLimit + additionalLimit) {
+            return false;
+        }
+
+        return true;
     }
 }
