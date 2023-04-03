@@ -113,12 +113,19 @@ contract('Core', function (accounts) {
         await eventInstance.activateEvent(5, { from: organizer });
 
         await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth }), 
+            "This user has hit their ticket issuance limit!"
+        );
+
         await ticketInstance.issueTickets(3, 2, { from: buyer4, value: 4 * oneEth });
         await ticketInstance.issueTickets(4, 2, { from: buyer4, value: 4 * oneEth });
         await ticketInstance.issueTickets(5, 2, { from: buyer4, value: 4 * oneEth });
 
         let finalAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
         assert.strictEqual(finalAdditionalIssuanceLimit.words[0], 2, "The tiers are not upgraded correctly!");
+
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
     });
 
     it("Transfer Ticket", async () => {
