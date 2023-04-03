@@ -1,9 +1,11 @@
 pragma solidity ^0.5.0;
 
 import "./Event.sol";
+import "./BlockTier.sol";
 
 contract Ticket {
     Event eventContract;
+    BlockTier blockTierContract;
     uint256 baseIssuanceLimit;
     address admin = msg.sender;
 
@@ -24,8 +26,9 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn, uint256 baseIssuanceLimitIn) public {
+    constructor(Event eventContractIn, BlockTier blockTierContractIn, uint256 baseIssuanceLimitIn) public {
         eventContract = eventContractIn;
+        blockTierContract = blockTierContractIn;
         baseIssuanceLimit = baseIssuanceLimitIn;
     }
     
@@ -151,7 +154,7 @@ contract Ticket {
 
     function checkTicketsIssued(uint256 eventId, address purchaser, uint256 quantity) public view returns (bool) {
         uint256 currentQuantity = ticketsIssued[eventId][purchaser];
-        
+
         if (currentQuantity + quantity > baseIssuanceLimit) {
             return false;
         }

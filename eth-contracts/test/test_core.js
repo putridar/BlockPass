@@ -4,12 +4,14 @@ var assert = require('assert');
 
 
 var Event = artifacts.require("../contracts/Event.sol");
+var BlockTier = artifacts.require("../contracts/BlockTier.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 
 contract('Core', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
+        blockTierInstance = await BlockTier.deployed();
         ticketInstance = await Ticket.deployed();
         secondaryMarketInstance = await SecondaryMarket.deployed();
     });
