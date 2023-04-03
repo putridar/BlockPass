@@ -4,12 +4,14 @@ var assert = require('assert');
 
 
 var Event = artifacts.require("../contracts/Event.sol");
+var BlockTier = artifacts.require("../contracts/BlockTier.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 
 contract('Core', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
+        blockTierInstance = await BlockTier.deployed();
         ticketInstance = await Ticket.deployed();
         secondaryMarketInstance = await SecondaryMarket.deployed();
     });
@@ -20,6 +22,7 @@ contract('Core', function (accounts) {
     buyer1 = accounts[2];
     buyer2 = accounts[3];
     buyer3 = accounts[4];
+    buyer4 = accounts[5];
     oneEth = 1000000000000000000;
 
     it("Create New Event", async () => {
@@ -63,25 +66,66 @@ contract('Core', function (accounts) {
         let currSupply = await eventInstance.getSupply(0);
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(100, 10, { from: buyer1 }),
+            ticketInstance.issueTickets(100, 2, { from: buyer1 }),
             "Event does not exists!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(1, 10, { from: buyer1 }),
+            ticketInstance.issueTickets(1, 2, { from: buyer1 }),
             "Event is not active or has expired!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 10, { from: buyer1, value: 1 * oneEth }),
+            ticketInstance.issueTickets(0, 2, { from: buyer1, value: 1 * oneEth }),
             "Insufficient funds to buy this ticket!"
         )
 
-        let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1, value: 20 * oneEth });
+        let issue = await ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth });
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
         let eventSupply = await eventInstance.getSupply(0);
-        assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 10, "Tickets are not issued!");
+        assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 2, "Tickets are not issued!");
+    });
+
+    it("Issue Ticket beyond base limit", async () => {
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth }), 
+            "This user has hit their ticket issuance limit!"
+        );
+    });
+
+    it("Check BlockTier loyalty program", async () => {
+        let initialAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
+        assert.strictEqual(initialAdditionalIssuanceLimit.words[0], 0, "The tiers are not initialized correctly!");
+
+        const now = new Date();
+        const expiry = Math.floor(now.getTime() / 1000) + 100000;
+        await eventInstance.createEvent("Burner Event 1", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(2, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 2", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(3, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 3", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(4, { from: organizer });
+
+        await eventInstance.createEvent("Burner Event 4", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(5, { from: organizer });
+
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth }), 
+            "This user has hit their ticket issuance limit!"
+        );
+
+        await ticketInstance.issueTickets(3, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(4, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(5, 2, { from: buyer4, value: 4 * oneEth });
+
+        let finalAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
+        assert.strictEqual(finalAdditionalIssuanceLimit.words[0], 2, "The tiers are not upgraded correctly!");
+
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
     });
 
     it("Transfer Ticket", async () => {
