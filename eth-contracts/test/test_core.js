@@ -63,25 +63,32 @@ contract('Core', function (accounts) {
         let currSupply = await eventInstance.getSupply(0);
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(100, 10, { from: buyer1 }),
+            ticketInstance.issueTickets(100, 2, { from: buyer1 }),
             "Event does not exists!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(1, 10, { from: buyer1 }),
+            ticketInstance.issueTickets(1, 2, { from: buyer1 }),
             "Event is not active or has expired!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 10, { from: buyer1, value: 1 * oneEth }),
+            ticketInstance.issueTickets(0, 2, { from: buyer1, value: 1 * oneEth }),
             "Insufficient funds to buy this ticket!"
         )
 
-        let issue = await ticketInstance.issueTickets(0, 10, { from: buyer1, value: 20 * oneEth });
+        let issue = await ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth });
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
         let eventSupply = await eventInstance.getSupply(0);
-        assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 10, "Tickets are not issued!");
+        assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 2, "Tickets are not issued!");
+    });
+
+    it("Issue Ticket beyond base limit", async () => {
+        truffleAssert.reverts(
+            ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth }), 
+            "This user has hit their ticket issuance limit!"
+        );
     });
 
     it("Transfer Ticket", async () => {

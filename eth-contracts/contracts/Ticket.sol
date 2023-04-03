@@ -4,6 +4,7 @@ import "./Event.sol";
 
 contract Ticket {
     Event eventContract;
+    uint256 baseIssuanceLimit;
     address admin = msg.sender;
 
     // Market address for verification
@@ -23,8 +24,9 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn) public {
+    constructor(Event eventContractIn, uint256 baseIssuanceLimitIn) public {
         eventContract = eventContractIn;
+        baseIssuanceLimit = baseIssuanceLimitIn;
     }
     
     event ticketIssued(uint256 ticketId);
@@ -34,6 +36,7 @@ contract Ticket {
     uint256 numTickets = 0;
     uint256 limitOfOwnershipChange = 1;
     mapping(uint256 => ticket) public tickets;
+    mapping(uint256 => mapping(address => uint256)) ticketsIssued; // Event ID => User ID => Number of tickets issued
 
     uint256 oneEth = 1000000000000000000;
 
@@ -75,6 +78,7 @@ contract Ticket {
     ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
+        require(checkTicketsIssued(eventId, msg.sender, quantity), "This user has hit their ticket issuance limit!");
 
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
@@ -83,6 +87,9 @@ contract Ticket {
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
+
+        // Records additional tickets that have been issued for this user
+        ticketsIssued[eventId][msg.sender]+= quantity;
 
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
         recipient.transfer(totalPrice * oneEth);
@@ -140,5 +147,15 @@ contract Ticket {
     // Sets the market address
     function setMarket(address marketIn) public {
         market = marketIn;
+    }
+
+    function checkTicketsIssued(uint256 eventId, address purchaser, uint256 quantity) public view returns (bool) {
+        uint256 currentQuantity = ticketsIssued[eventId][purchaser];
+        
+        if (currentQuantity + quantity > baseIssuanceLimit) {
+            return false;
+        }
+
+        return true;
     }
 }
