@@ -1,11 +1,13 @@
 pragma solidity ^0.5.0;
 
 import "./Event.sol";
+import "./TickToken.sol";
 import "./BlockTier.sol";
 
 contract Ticket {
     Event eventContract;
     BlockTier blockTierContract;
+    TickToken tokenContract;
     uint256 baseIssuanceLimit;
     address admin = msg.sender;
 
@@ -17,6 +19,13 @@ contract Ticket {
         expired
     }
 
+    enum userTier {
+        bronze,
+        silver,
+        gold,
+        diamond
+    }
+
     struct ticket {
         uint256 ticketId;
         uint256 eventId;
@@ -26,20 +35,29 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn, BlockTier blockTierContractIn, uint256 baseIssuanceLimitIn) public {
+    constructor(Event eventContractIn, BlockTier blockTierContractIn, TickToken tokenContractIn, uint256 baseIssuanceLimitIn) public {
         eventContract = eventContractIn;
         blockTierContract = blockTierContractIn;
+        tokenContract = tokenContractIn;
         baseIssuanceLimit = baseIssuanceLimitIn;
     }
     
     event ticketIssued(uint256 ticketId);
     event ticketExpired(uint256 ticketId);
     event ticketTransfered(uint256 ticketId);
+    event tokenRedeemed(uint256 token);
+    event debug(string str);
 
     uint256 numTickets = 0;
+    uint256 numDiscounts = 0;
     uint256 limitOfOwnershipChange = 1;
+    uint256 baseDiscount = 200;
     mapping(uint256 => ticket) public tickets;
     mapping(uint256 => mapping(address => uint256)) ticketsIssued; // Event ID => User ID => Number of tickets issued
+
+    mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
+    mapping(address => userTier) public userTiers; //Tracking each user's tier
+    mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
 
     uint256 oneEth = 1000000000000000000;
 
@@ -77,27 +95,37 @@ contract Ticket {
 
     function issueTickets(
         uint256 eventId,
-        uint256 quantity
+        uint256 quantity,
+        bool redeem,
+        uint256 tokenToBeRedeemed
     ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
+        require(!redeem || (redeem && tokenToBeRedeemed != 0), "Token to be redeemed cannot be 0");
+        require(!redeem || (redeem && (tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed)), "User does not have sufficient token");
         require(checkTicketsIssued(eventId, msg.sender, quantity), "This user has hit their ticket issuance limit!");
-
+        emit debug("require");
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
-
+        emit debug("standard");
         require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
-
+        emit debug("add supply");
         // Records additional tickets that have been issued for this user
         ticketsIssued[eventId][msg.sender]+= quantity;
         blockTierContract.addTicketsBought(msg.sender, quantity);
-
+        emit debug("add ticketbought");
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
-        recipient.transfer(totalPrice * oneEth);
-
+        uint256 price = totalPrice * oneEth;
+        if (redeem) {
+            price = price * (1 - (tokenToBeRedeemed/baseDiscount));
+            tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+            emit tokenRedeemed(tokenToBeRedeemed);
+        }
+        recipient.transfer(price);
+        emit debug("transfer");
         //Commission fee for ticket sales?
 
         uint256[] memory res = new uint256[](quantity);
@@ -116,6 +144,14 @@ contract Ticket {
             res[i] = numTickets;
             numTickets++;
         }
+
+        // Update the #transactions of the user
+        uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
+        noOfTransactions[msg.sender] = totalTransactions;
+        emit debug("update");
+        // Give tokens (part of loyalty program)
+        tokenContract.mintToken(msg.sender, quantity);
+
         emit ticketIssued(numTickets);
         // Returns array with ticket IDs of all the tickets that have been issued to the requester
         return res;
@@ -153,6 +189,10 @@ contract Ticket {
         market = marketIn;
     }
 
+    function getToken(address user) public view returns (uint256) {
+        return tokenContract.checkCredit(user);
+    }
+    
     function checkTicketsIssued(uint256 eventId, address purchaser, uint256 quantity) public view returns (bool) {
         uint256 currentQuantity = ticketsIssued[eventId][purchaser];
         uint256 additionalLimit = blockTierContract.getAdditionalIssuanceLimit(purchaser);
