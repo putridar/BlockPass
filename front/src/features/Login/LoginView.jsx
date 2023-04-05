@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/auth-context';
-import { getWalletAddress } from "../../utils/web3-client";
+import { getWalletAddress } from "../../utils/web3-utils/web3-client";
 import { useNavigate } from "react-router-dom";
-
 
 function LoginView() {
 

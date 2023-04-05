@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getWalletAddress } from "../../utils/web3-client";
+import { getWalletAddress } from "../../utils/web3-utils/web3-client";
 import { signUp } from "../../utils/auth-client";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +18,7 @@ function SignUpView() {
 
     const submit = async (e) => {
         signUp(form.username, walletAddress, form.email, form.password);
+        navigate("/home")
     }
 
     return (
