@@ -35,7 +35,7 @@ contract Event {
     }
 
     modifier validEvent(uint256 eventId) {
-        require(eventId < numEvents);
+        require(eventId <= numEvents);
         _;
     }
 
