@@ -98,37 +98,34 @@ contract Ticket {
     function issueTickets(
         uint256 eventId,
         uint256 quantity,
-        bool redeem,
         uint256 tokenToBeRedeemed
     ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
-        require(!redeem || (redeem && tokenToBeRedeemed != 0), "Token to be redeemed cannot be 0");
-        require(!redeem || (redeem && (tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed)), "User does not have sufficient token");
+        //require(tokenToBeRedeemed != 0, "Token to be redeemed cannot be 0");
+        require(tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed, "User does not have sufficient token");
         require(checkTicketsIssued(eventId, msg.sender, quantity), "This user has hit their ticket issuance limit!");
-        emit debug("require");
+        
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
-        emit debug("standard");
-        require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
+        
+        require(msg.value >= totalPrice * oneEth * (1 - (tokenToBeRedeemed/baseDiscount)), "Insufficient funds to buy this ticket!");
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
-        emit debug("add supply");
+        
         // Records additional tickets that have been issued for this user
         ticketsIssued[eventId][msg.sender]+= quantity;
         blockTierContract.addTicketsBought(msg.sender, quantity);
-        emit debug("add ticketbought");
+        
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
+        
         uint256 price = totalPrice * oneEth;
-        if (redeem) {
-            price = price * (1 - (tokenToBeRedeemed/baseDiscount));
-            tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
-            emit tokenRedeemed(tokenToBeRedeemed);
-        }
+        price = price * (1 - (tokenToBeRedeemed/baseDiscount));
+        tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+        emit tokenRedeemed(tokenToBeRedeemed);
+
         recipient.transfer(price);
-        emit debug("transfer");
-        //Commission fee for ticket sales?
 
         uint256[] memory res = new uint256[](quantity);
 
