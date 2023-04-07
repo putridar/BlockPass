@@ -12,7 +12,7 @@ module.exports = (deployer, network, accounts) => {
     // Each new tier has an additional mint limit of 2 - e.g., Bronze can mint an 2 ADDITIONAL tickets, Silver can mint an 4 ADDITIONAL tickets
   })
   .then(function() {
-    return deployer.deploy(Ticket, Event.address, BlockTier.address, 2);
+    return deployer.deploy(Ticket, Event.address, BlockTier.address, 2, 1);
   })
   .then(function() {
     return deployer.deploy(SecondaryMarket, Ticket.address, 1);

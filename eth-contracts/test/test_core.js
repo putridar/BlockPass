@@ -80,7 +80,7 @@ contract('Core', function (accounts) {
             "Insufficient funds to buy this ticket!"
         )
 
-        let issue = await ticketInstance.issueTickets(0, 2, { from: buyer1, value: 4 * oneEth });
+        let issue = await ticketInstance.issueTickets(0, 2, { from: buyer1, value: 5 * oneEth }); // 2 Tickets x 2 ETH + 1 ETH commission fee
         truffleAssert.eventEmitted(issue, "ticketIssued");
 
         let eventSupply = await eventInstance.getSupply(0);
@@ -112,20 +112,20 @@ contract('Core', function (accounts) {
         await eventInstance.createEvent("Burner Event 4", 1000, 2, expiry, { from: organizer });
         await eventInstance.activateEvent(5, { from: organizer });
 
-        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 5 * oneEth });
         truffleAssert.reverts(
             ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth }), 
             "This user has hit their ticket issuance limit!"
         );
 
-        await ticketInstance.issueTickets(3, 2, { from: buyer4, value: 4 * oneEth });
-        await ticketInstance.issueTickets(4, 2, { from: buyer4, value: 4 * oneEth });
-        await ticketInstance.issueTickets(5, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(3, 2, { from: buyer4, value: 5 * oneEth });
+        await ticketInstance.issueTickets(4, 2, { from: buyer4, value: 5 * oneEth });
+        await ticketInstance.issueTickets(5, 2, { from: buyer4, value: 5 * oneEth });
 
         let finalAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
         assert.strictEqual(finalAdditionalIssuanceLimit.words[0], 2, "The tiers are not upgraded correctly!");
 
-        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(2, 2, { from: buyer4, value: 5 * oneEth });
     });
 
     it("Transfer Ticket", async () => {
@@ -161,7 +161,6 @@ contract('Core', function (accounts) {
 
     });
 
-    //TODO: Check ETH balances of admin, buyer1, and buyer2, if possible
     it("Buy Ticket from Secondary Market", async () => {
         await truffleAssert.reverts(
             secondaryMarketInstance.buy(0, {from: buyer3, value: oneEth }),

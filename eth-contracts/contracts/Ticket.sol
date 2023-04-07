@@ -8,6 +8,7 @@ contract Ticket {
     BlockTier blockTierContract;
     uint256 baseIssuanceLimit;
     address admin = msg.sender;
+    uint256 fee = 0; // Ticket purchase commission fee in ETH
 
     // Market address for verification
     address market = address(0);
@@ -26,10 +27,11 @@ contract Ticket {
         uint256 expiry;
     }
 
-    constructor(Event eventContractIn, BlockTier blockTierContractIn, uint256 baseIssuanceLimitIn) public {
+    constructor(Event eventContractIn, BlockTier blockTierContractIn, uint256 baseIssuanceLimitIn, uint256 feeIn) public {
         eventContract = eventContractIn;
         blockTierContract = blockTierContractIn;
         baseIssuanceLimit = baseIssuanceLimitIn;
+        fee = feeIn;
     }
     
     event ticketIssued(uint256 ticketId);
@@ -86,7 +88,7 @@ contract Ticket {
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
 
-        require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
+        require(msg.value >= (totalPrice + fee) * oneEth, "Insufficient funds to buy this ticket!");
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
@@ -98,7 +100,9 @@ contract Ticket {
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
         recipient.transfer(totalPrice * oneEth);
 
-        //Commission fee for ticket sales?
+        // Ticket commission
+        address payable adminRecipient = address(uint160(admin));
+        adminRecipient.transfer(fee * oneEth);
 
         uint256[] memory res = new uint256[](quantity);
 
