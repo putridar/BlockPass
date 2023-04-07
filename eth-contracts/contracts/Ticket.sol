@@ -15,7 +15,8 @@ contract Ticket {
 
     enum ticketState {
         active,
-        expired
+        used,
+        forfeited
     }
 
     struct ticket {
@@ -35,7 +36,8 @@ contract Ticket {
     }
     
     event ticketIssued(uint256 ticketId);
-    event ticketExpired(uint256 ticketId);
+    event ticketUsed(uint256 ticketId);
+    event ticketForfeited(uint256 ticketId);
     event ticketTransfered(uint256 ticketId);
 
     uint256 numTickets = 0;
@@ -66,13 +68,13 @@ contract Ticket {
     }
 
     modifier activeTicket(uint256 ticketId) {
-        if (eventContract.getExpiry(tickets[ticketId].eventId) < now) {
-            tickets[ticketId].currState = ticketState.expired;
-            emit ticketExpired(ticketId);
+        if (eventContract.getExpiry(tickets[ticketId].eventId) < now && tickets[ticketId].currState == ticketState.active) {
+            tickets[ticketId].currState = ticketState.forfeited;
+            emit ticketForfeited(ticketId);
         }
         require(
             tickets[ticketId].currState == ticketState.active,
-            "This ticket has expired!"
+            "This ticket has been used or forfeited!"
         );
         _;
     }
@@ -135,8 +137,8 @@ contract Ticket {
     }
 
     function useTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
-        tickets[ticketId].currState = ticketState.expired;
-        emit ticketExpired(ticketId);
+        tickets[ticketId].currState = ticketState.used;
+        emit ticketUsed(ticketId);
     }
 
     function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck() validTicket(ticketId) activeTicket(ticketId) {
