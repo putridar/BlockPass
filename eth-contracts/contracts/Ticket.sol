@@ -125,7 +125,7 @@ contract Ticket {
         trfPrice = trfPrice * (1 - (tokenToBeRedeemed/baseDiscount));
 
         if (tokenToBeRedeemed > 0) {
-             tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+             tokenContract.useToken(msg.sender, tokenToBeRedeemed);
             emit tokenRedeemed(tokenToBeRedeemed);
         }
         

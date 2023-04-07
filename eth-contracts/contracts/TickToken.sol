@@ -21,15 +21,10 @@ contract TickToken {
         return credit;
     }
 
-    function transferCredit(address sender, address recipient, uint256 amt) public {
+    function useToken(address sender, uint256 amt) public {
         uint256 senderBalance = balances[sender];
-        uint256 recipientBalance = balances[recipient];
-
         senderBalance -= amt;
-        recipientBalance += amt;
-
         balances[sender] = senderBalance;
-        balances[recipient] = recipientBalance;
         emit tokenUsed(amt);
     }
 }
