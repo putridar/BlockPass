@@ -167,7 +167,6 @@ contract('Core', function (accounts) {
 
     });
 
-    //TODO: Check ETH balances of admin, buyer1, and buyer2, if possible
     it("Buy Ticket from Secondary Market", async () => {
         await truffleAssert.reverts(
             secondaryMarketInstance.buy(0, {from: buyer3, value: oneEth }),

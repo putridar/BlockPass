@@ -119,13 +119,17 @@ contract Ticket {
         blockTierContract.addTicketsBought(msg.sender, quantity);
         
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
-        
-        uint256 price = totalPrice * oneEth;
-        price = price * (1 - (tokenToBeRedeemed/baseDiscount));
-        tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
-        emit tokenRedeemed(tokenToBeRedeemed);
 
-        recipient.transfer(price);
+        //trfPrice in wei
+        uint256 trfPrice = totalPrice * oneEth;
+        trfPrice = trfPrice * (1 - (tokenToBeRedeemed/baseDiscount));
+
+        if (tokenToBeRedeemed > 0) {
+             tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+            emit tokenRedeemed(tokenToBeRedeemed);
+        }
+        
+        recipient.transfer(trfPrice);
 
         uint256[] memory res = new uint256[](quantity);
 
@@ -144,10 +148,10 @@ contract Ticket {
             numTickets++;
         }
 
-        // Update the #transactions of the user
+        // Update the # of transactions of the user
         uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
         noOfTransactions[msg.sender] = totalTransactions;
-        emit debug("update");
+        
         // Give tokens (part of loyalty program)
         tokenContract.mintToken(msg.sender, quantity);
 
