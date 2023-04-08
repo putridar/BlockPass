@@ -12,7 +12,7 @@ var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 var TicketToken = artifacts.require("../contracts/TickToken");
 
-contract('Core', function (accounts) {
+contract('Core Functionalities', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
         ticketToken = await TicketToken.deployed();
@@ -20,8 +20,6 @@ contract('Core', function (accounts) {
         ticketInstance = await Ticket.deployed();
         secondaryMarketInstance = await SecondaryMarket.deployed();
     });
-
-    console.log("-- Testing core functions --");
 
     organizer = accounts[1];
     buyer1 = accounts[2];
@@ -189,19 +187,16 @@ contract('Core', function (accounts) {
     });
 
     it("Check redeem and discount", async () => {
-        // const balance = await web3.eth.getBalance(buyer3);
         await truffleAssert.reverts(
             ticketInstance.issueTickets(0, 1, 100, {from: buyer4, value: 2 * oneEth} ),
             "User does not have sufficient token"
         );
+
         let buy1 = await ticketInstance.issueTickets(0, 1, 10, {from: buyer4, value: 2 * oneEth} );
         truffleAssert.eventEmitted(buy1, "ticketIssued");
         truffleAssert.eventEmitted(buy1, "tokenRedeemed");
-        // let basePrice = await eventInstance.getStandardPrice(0);
-        // let totalPrice = await basePrice * 10 * oneEth * (1-0.05);
-        // const balance2 = await web3.eth.getBalance(buyer3);
+        
         const credit = await ticketToken.checkCredit(buyer4);
         assert.equal(credit.toNumber(),1, "Incorrect token");
-        // assert.equal(Math.round(balance2/oneEth), Math.round((balance - totalPrice)/oneEth), "Incorrect discount");
     });
 });

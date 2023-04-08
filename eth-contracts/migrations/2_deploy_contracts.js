@@ -17,6 +17,7 @@ module.exports = (deployer, network, accounts) => {
   })
   .then(function() {
     return deployer.deploy(Ticket, Event.address, BlockTier.address, TicketToken.address, 2);
+    // Each user can only buy a maximum of 2 tickets for each event
   })
   .then(function() {
     return deployer.deploy(SecondaryMarket, Ticket.address, 1);

@@ -81,6 +81,7 @@ contract SecondaryMarket {
         return fee;
     }
 
+    // Return the ticket ID of all tickets currently being listed
     function getAllListings() public view returns(uint256[] memory) {
         uint256[] memory res = new uint256[](numListings);
 
