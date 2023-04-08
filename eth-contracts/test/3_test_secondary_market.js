@@ -36,7 +36,8 @@ contract('Secondary Market', function (accounts) {
         );
 
         await secondaryMarketInstance.list(0, 3, { from: user1 });
-
+        
+        // Listing price includes commission fee
         let listingPrice = await secondaryMarketInstance.checkPrice(0);
         assert.equal(listingPrice.words[0], 4, "Ticket was not listed at the expected price");
     });
@@ -58,8 +59,15 @@ contract('Secondary Market', function (accounts) {
         );
 
         await secondaryMarketInstance.buy(0, { from: user2, value: 4 * oneEth });
-        
+
         let newOwner = await ticketInstance.getTicketOwner(0)
         assert.equal(newOwner, user2, "Ticket ownership has not changed!");
+    });
+
+    it("Attempt to re-list a secondhand ticket bought from another user in the secondary market fails", async () => {
+        await truffleAssert.reverts(
+            secondaryMarketInstance.list(0, 3, { from: user2 }),
+            "This ticket cannot be sold due to the limit on changes of ownership!"
+        );
     });
 });
