@@ -197,6 +197,6 @@ contract('Core Functionalities', function (accounts) {
         truffleAssert.eventEmitted(buy1, "tokenRedeemed");
         
         const credit = await ticketToken.checkCredit(buyer4);
-        assert.equal(credit.toNumber(),1, "Incorrect token");
+        assert.equal(credit.toNumber(), 1, "Incorrect token");
     });
 });

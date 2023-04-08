@@ -9,23 +9,57 @@ var Event = artifacts.require("../contracts/Event.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 
-contract('Loyalty Programs', function (accounts) {
+contract('Secondary Market', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
-        ticketToken = await TicketToken.deployed();
-        blockTierInstance = await BlockTier.deployed();
         ticketInstance = await Ticket.deployed();
         secondaryMarketInstance = await SecondaryMarket.deployed();
     });
 
     organizer = accounts[1];
-    buyer1 = accounts[2];
-    buyer2 = accounts[3];
-    buyer3 = accounts[4];
-    buyer4 = accounts[5];
+    user1 = accounts[2];
+    user2 = accounts[3];
     oneEth = 1000000000000000000;
 
-    it("Test A", async () => {
+    it("List a purchased ticket on the Secondary Market", async () => {
+        const now = new Date();
+        const expiry = Math.floor(now.getTime() / 1000) + 100000;
+
+        await eventInstance.createEvent("Burner Event 1", 1000, 2, expiry, { from: organizer });
+        await eventInstance.activateEvent(0, { from: organizer });
+
+        await ticketInstance.issueTickets(0, 2, 0, { from: user1, value: 4 * oneEth });
+
+        await truffleAssert.reverts(
+            secondaryMarketInstance.list(0, 3, { from: user2 }),
+            "Ticket is not owned by this owner"
+        );
+
+        await secondaryMarketInstance.list(0, 3, { from: user1 });
+
+        let listingPrice = await secondaryMarketInstance.checkPrice(0);
+        assert.equal(listingPrice.words[0], 4, "Ticket was not listed at the expected price");
+    });
+
+    it("Buy a ticket from the secondary market", async () => {
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(1, {from: user2, value: oneEth }),
+            "Ticket has not been listed!"
+        );
+
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(0, {from: user1, value: oneEth }),
+            "You cannot buy your own ticket!"
+        );
+
+        await truffleAssert.reverts(
+            secondaryMarketInstance.buy(0, {from: user2, value: oneEth }),
+            "You do not have sufficient funds!"
+        );
+
+        await secondaryMarketInstance.buy(0, { from: user2, value: 4 * oneEth });
         
+        let newOwner = await ticketInstance.getTicketOwner(0)
+        assert.equal(newOwner, user2, "Ticket ownership has not changed!");
     });
 });

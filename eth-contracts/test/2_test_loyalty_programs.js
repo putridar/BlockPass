@@ -70,4 +70,19 @@ contract('Loyalty Programs', function (accounts) {
         let token = await ticketInstance.getToken(user2)
         assert.equal(token, 2, "Incorrect token update");
     });
+
+    it("User can redeem TickTokens to get discounts when purchasing tickets", async () => {
+        await truffleAssert.reverts(
+            ticketInstance.issueTickets(0, 1, 100, {from: user2, value: 2 * oneEth} ),
+            "User does not have sufficient token"
+        );
+
+        let buy = await ticketInstance.issueTickets(1, 1, 2, {from: user2, value: 2 * oneEth} );
+        truffleAssert.eventEmitted(buy, "ticketIssued");
+        truffleAssert.eventEmitted(buy, "tokenRedeemed");
+        
+        // Every ticket purchased will provide the user with 1 token, regardless if that ticket was purchased with or without discounts
+        const credit = await tickToken.checkCredit(user2);
+        assert.equal(credit.toNumber(), 1, "Incorrect token deducted");
+    });
 });
