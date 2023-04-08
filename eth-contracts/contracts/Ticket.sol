@@ -16,7 +16,8 @@ contract Ticket {
 
     enum ticketState {
         active,
-        expired
+        used,
+        forfeited
     }
 
     enum userTier {
@@ -43,7 +44,8 @@ contract Ticket {
     }
     
     event ticketIssued(uint256 ticketId);
-    event ticketExpired(uint256 ticketId);
+    event ticketUsed(uint256 ticketId);
+    event ticketForfeited(uint256 ticketId);
     event ticketTransfered(uint256 ticketId);
     event tokenRedeemed(uint256 token);
     event debug(string str);
@@ -82,13 +84,13 @@ contract Ticket {
     }
 
     modifier activeTicket(uint256 ticketId) {
-        if (eventContract.getExpiry(tickets[ticketId].eventId) < now) {
-            tickets[ticketId].currState = ticketState.expired;
-            emit ticketExpired(ticketId);
+        if (eventContract.getExpiry(tickets[ticketId].eventId) < now && tickets[ticketId].currState == ticketState.active) {
+            tickets[ticketId].currState = ticketState.forfeited;
+            emit ticketForfeited(ticketId);
         }
         require(
             tickets[ticketId].currState == ticketState.active,
-            "This ticket has expired!"
+            "This ticket has been used or forfeited!"
         );
         _;
     }
@@ -96,37 +98,38 @@ contract Ticket {
     function issueTickets(
         uint256 eventId,
         uint256 quantity,
-        bool redeem,
         uint256 tokenToBeRedeemed
     ) public payable returns (uint256[] memory) {
         require(eventContract.eventIsValid(eventId), "Event does not exists!");
         require(eventContract.eventIsActive(eventId), "Event is not active or has expired!");
-        require(!redeem || (redeem && tokenToBeRedeemed != 0), "Token to be redeemed cannot be 0");
-        require(!redeem || (redeem && (tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed)), "User does not have sufficient token");
+        //require(tokenToBeRedeemed != 0, "Token to be redeemed cannot be 0");
+        require(tokenContract.checkCredit(msg.sender) >= tokenToBeRedeemed, "User does not have sufficient token");
         require(checkTicketsIssued(eventId, msg.sender, quantity), "This user has hit their ticket issuance limit!");
-        emit debug("require");
+        
         uint256 standardPrice = eventContract.getStandardPrice(eventId);
         uint256 totalPrice = standardPrice * quantity;
-        emit debug("standard");
-        require(msg.value >= totalPrice * oneEth, "Insufficient funds to buy this ticket!");
+        
+        require(msg.value >= totalPrice * oneEth * (1 - (tokenToBeRedeemed/baseDiscount)), "Insufficient funds to buy this ticket!");
 
         // Add supply first to "reserve" the tickets; minimize potential shenanigans if multiple users buy tickets at the same time
         eventContract.addSupply(eventId, quantity);
-        emit debug("add supply");
+        
         // Records additional tickets that have been issued for this user
         ticketsIssued[eventId][msg.sender]+= quantity;
         blockTierContract.addTicketsBought(msg.sender, quantity);
-        emit debug("add ticketbought");
+        
         address payable recipient = address(uint160(eventContract.getOrganizer(eventId)));
-        uint256 price = totalPrice * oneEth;
-        if (redeem) {
-            price = price * (1 - (tokenToBeRedeemed/baseDiscount));
-            tokenContract.transferCredit(msg.sender, recipient, tokenToBeRedeemed);
+
+        //trfPrice in wei
+        uint256 trfPrice = totalPrice * oneEth;
+        trfPrice = trfPrice * (1 - (tokenToBeRedeemed/baseDiscount));
+
+        if (tokenToBeRedeemed > 0) {
+             tokenContract.useToken(msg.sender, tokenToBeRedeemed);
             emit tokenRedeemed(tokenToBeRedeemed);
         }
-        recipient.transfer(price);
-        emit debug("transfer");
-        //Commission fee for ticket sales?
+        
+        recipient.transfer(trfPrice);
 
         uint256[] memory res = new uint256[](quantity);
 
@@ -145,10 +148,10 @@ contract Ticket {
             numTickets++;
         }
 
-        // Update the #transactions of the user
+        // Update the # of transactions of the user
         uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
         noOfTransactions[msg.sender] = totalTransactions;
-        emit debug("update");
+        
         // Give tokens (part of loyalty program)
         tokenContract.mintToken(msg.sender, quantity);
 
@@ -167,8 +170,8 @@ contract Ticket {
     }
 
     function useTicket(uint256 ticketId) public validTicket(ticketId) activeTicket(ticketId) {
-        tickets[ticketId].currState = ticketState.expired;
-        emit ticketExpired(ticketId);
+        tickets[ticketId].currState = ticketState.used;
+        emit ticketUsed(ticketId);
     }
 
     function marketTransfer(uint256 ticketId, address receiver) public marketTransferCheck() validTicket(ticketId) activeTicket(ticketId) {

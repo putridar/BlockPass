@@ -12,7 +12,7 @@ var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 var TicketToken = artifacts.require("../contracts/TickToken");
 
-contract('Core', function (accounts) {
+contract('Core Functionalities', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
         ticketToken = await TicketToken.deployed();
@@ -20,8 +20,6 @@ contract('Core', function (accounts) {
         ticketInstance = await Ticket.deployed();
         secondaryMarketInstance = await SecondaryMarket.deployed();
     });
-
-    console.log("-- Testing core functions --");
 
     organizer = accounts[1];
     buyer1 = accounts[2];
@@ -71,21 +69,21 @@ contract('Core', function (accounts) {
         let currSupply = await eventInstance.getSupply(0);
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(100, 2, false, 0, { from: buyer1 }),
+            ticketInstance.issueTickets(100, 2, 0, { from: buyer1 }),
             "Event does not exists!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(1, 2, false, 0, { from: buyer1 }),
+            ticketInstance.issueTickets(1, 2, 0, { from: buyer1 }),
             "Event is not active or has expired!"
         );
 
         truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 2, false, 0, { from: buyer1, value: 1 * oneEth }),
+            ticketInstance.issueTickets(0, 2, 0, { from: buyer1, value: 1 * oneEth }),
             "Insufficient funds to buy this ticket!"
         )
         
-        let issue = await ticketInstance.issueTickets(0, 2, false, 0, { from: buyer1, value: 4 * oneEth });
+        let issue = await ticketInstance.issueTickets(0, 2, 0, { from: buyer1, value: 4 * oneEth });
         truffleAssert.eventEmitted(issue, "ticketIssued");
         let token = await ticketInstance.getToken(buyer1)
         assert.equal(token, 2, "Incorrect token update");
@@ -95,7 +93,7 @@ contract('Core', function (accounts) {
 
     it("Issue Ticket beyond base limit", async () => {
         truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 2, false, 0, { from: buyer1, value: 4 * oneEth }), 
+            ticketInstance.issueTickets(0, 2, 0, { from: buyer1, value: 4 * oneEth }), 
             "This user has hit their ticket issuance limit!"
         );
     });
@@ -118,20 +116,20 @@ contract('Core', function (accounts) {
         await eventInstance.createEvent("Burner Event 4", 1000, 2, expiry, { from: organizer });
         await eventInstance.activateEvent(5, { from: organizer });
 
-        await ticketInstance.issueTickets(2, 2, false, 0, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(2, 2, 0, { from: buyer4, value: 4 * oneEth });
         truffleAssert.reverts(
-            ticketInstance.issueTickets(2, 2, false, 0, { from: buyer4, value: 4 * oneEth }), 
+            ticketInstance.issueTickets(2, 2, 0, { from: buyer4, value: 4 * oneEth }), 
             "This user has hit their ticket issuance limit!"
         );
 
-        await ticketInstance.issueTickets(3, 2, false, 0, { from: buyer4, value: 4 * oneEth });
-        await ticketInstance.issueTickets(4, 2, false, 0, { from: buyer4, value: 4 * oneEth });
-        await ticketInstance.issueTickets(5, 2, false, 0, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(3, 2, 0, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(4, 2, 0, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(5, 2, 0, { from: buyer4, value: 4 * oneEth });
 
         let finalAdditionalIssuanceLimit = await blockTierInstance.getAdditionalIssuanceLimit(buyer4);
         assert.strictEqual(finalAdditionalIssuanceLimit.words[0], 2, "The tiers are not upgraded correctly!");
 
-        await ticketInstance.issueTickets(2, 2, false, 0, { from: buyer4, value: 4 * oneEth });
+        await ticketInstance.issueTickets(2, 2, 0, { from: buyer4, value: 4 * oneEth });
     });
 
     it("Transfer Ticket", async () => {
@@ -167,7 +165,6 @@ contract('Core', function (accounts) {
 
     });
 
-    //TODO: Check ETH balances of admin, buyer1, and buyer2, if possible
     it("Buy Ticket from Secondary Market", async () => {
         await truffleAssert.reverts(
             secondaryMarketInstance.buy(0, {from: buyer3, value: oneEth }),
@@ -190,23 +187,16 @@ contract('Core', function (accounts) {
     });
 
     it("Check redeem and discount", async () => {
-        // const balance = await web3.eth.getBalance(buyer3);
         await truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 1, true, 0, {from: buyer4, value: 2 * oneEth} ),
-            "Token to be redeemed cannot be 0"
-        );
-        await truffleAssert.reverts(
-            ticketInstance.issueTickets(0, 1, true, 100, {from: buyer4, value: 2 * oneEth} ),
+            ticketInstance.issueTickets(0, 1, 100, {from: buyer4, value: 2 * oneEth} ),
             "User does not have sufficient token"
         );
-        let buy1 = await ticketInstance.issueTickets(0, 1, true, 10, {from: buyer4, value: 2 * oneEth} );
+
+        let buy1 = await ticketInstance.issueTickets(0, 1, 10, {from: buyer4, value: 2 * oneEth} );
         truffleAssert.eventEmitted(buy1, "ticketIssued");
         truffleAssert.eventEmitted(buy1, "tokenRedeemed");
-        // let basePrice = await eventInstance.getStandardPrice(0);
-        // let totalPrice = await basePrice * 10 * oneEth * (1-0.05);
-        // const balance2 = await web3.eth.getBalance(buyer3);
+        
         const credit = await ticketToken.checkCredit(buyer4);
-        assert.equal(credit.toNumber(),1, "Incorrect token");
-        // assert.equal(Math.round(balance2/oneEth), Math.round((balance - totalPrice)/oneEth), "Incorrect discount");
+        assert.equal(credit.toNumber(), 1, "Incorrect token");
     });
 });
