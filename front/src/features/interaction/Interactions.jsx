@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { createEvent, getAllEvents, getEventInfo } from "../../utils/web3-utils/web3-client";
+import { createEvent, getAllEvents, getEventInfo, populateData } from "../../utils/web3-utils/web3-client";
+import { Link } from 'react-router-dom';
 
 function Interaction() {
     const [form, setForm] = useState({});
@@ -51,6 +52,14 @@ function Interaction() {
                 <input className="p-2 border-2 border-black" onChange={handleChange} type="date" name="date" />
                 <button className="p-2 border-2 border-black" type="submit">Add new event</button>
             </form>
+            <div>
+                <button className="p-2 border-2 border-black" onClick={populateData}>Populate Data</button>
+            </div>
+            <div>
+                <Link to="/market">
+                <button className="p-2 border-2 border-black">Go To Secondary Market</button>
+                </Link>
+            </div>
             <div>Event List</div>
             {
                 eventIds.map((details, id) => {
