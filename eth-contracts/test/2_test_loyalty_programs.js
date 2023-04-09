@@ -10,6 +10,13 @@ var BlockTier = artifacts.require("../contracts/BlockTier.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 var TickToken = artifacts.require("../contracts/TickToken");
 
+/* 
+    Tests the functions of the two loyalty programs, including:
+    1. BlockTier | Tier initialization - every user starts at Bronze tier
+    2. BlockTier | After increasing their tier, a user can buy more tickets
+    3. TickToken | For every ticket purchase, a user will get rewarded with 1 TickToken
+    4. TickToken | A user can redeem their TickToken for discounts
+*/
 contract('Loyalty Programs', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();

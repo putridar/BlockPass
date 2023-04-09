@@ -9,6 +9,13 @@ const web3 = new Web3(provider);
 var Event = artifacts.require("../contracts/Event.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 
+/* 
+    Tests the core functionalities of BlockPass, including
+    1. Event creation by organizer
+    2. Event activation by organizer
+    3. Ticket purchase by user
+    4. Ticket transfer from one user to another
+*/
 contract('Core Functionalities', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();
@@ -88,7 +95,7 @@ contract('Core Functionalities', function (accounts) {
         assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 2, "Tickets are not issued!");
     });
 
-    it("Attempt to issue Ticket beyond base limit", async () => {
+    it("Attempt to issue Ticket beyond base limit fails", async () => {
         // To minimize scalping, each user can only buy 2 tickets for each event (limit is set when deploying Ticket.sol)
         truffleAssert.reverts(
             ticketInstance.issueTickets(0, 2, 0, { from: user1, value: 4 * oneEth }), 
@@ -96,7 +103,7 @@ contract('Core Functionalities', function (accounts) {
         );
     });
 
-    it("Transfer Ticket", async () => {
+    it("Transfer Ticket to another user", async () => {
         await truffleAssert.reverts(
             ticketInstance.transfer(0, user1, { from: user1 }),
             "Cannot transfer ticket to yourself!"
@@ -109,7 +116,7 @@ contract('Core Functionalities', function (accounts) {
         assert.strictEqual(owner, user2, "Ticket is not transfered!");
     });
 
-    it("Each Ticket can only be transfered once", async () => {
+    it("Attempt to transfer a ticket that has previously changed hands fails", async () => {
         await truffleAssert.reverts(
             ticketInstance.transfer(0, user1, { from: user2 }), 
             "This ticket's ownership has been changed once before!"

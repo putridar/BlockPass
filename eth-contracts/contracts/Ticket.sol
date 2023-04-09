@@ -4,6 +4,21 @@ import "./Event.sol";
 import "./TickToken.sol";
 import "./BlockTier.sol";
 
+/* 
+    This contract encapsulates the full ticket lifecycle.
+
+    Flow:
+    1. User waits until an event has been created and activated
+    2. User buys the ticket for that event using the issueTicket() function, initially the state of the ticket is 'active'
+    3. User presents the ticket at the venue, after which the ticket's state will be set to 'used'
+    4. If the user does not attend the event, the ticket will be set as 'forfeited'
+
+    There is a max number of ticket that any user can buy. This is set to 2 by default. The number can be increased through the
+    BlockTier loyalty program. Users can also redeem TickTokens to get discounts for their ticket purchases.
+
+    A ticket can only change its ownership once - regardless of whether it changes through a direct ticket transfer or through
+    a transaction in the secondary market.
+*/
 contract Ticket {
     Event eventContract;
     BlockTier blockTierContract;
@@ -20,20 +35,12 @@ contract Ticket {
         forfeited
     }
 
-    enum userTier {
-        bronze,
-        silver,
-        gold,
-        diamond
-    }
-
     struct ticket {
         uint256 ticketId;
         uint256 eventId;
         address owner;
         ticketState currState;
         uint256 numberOfOwnershipChanges;
-        uint256 expiry;
     }
 
     constructor(Event eventContractIn, BlockTier blockTierContractIn, TickToken tokenContractIn, uint256 baseIssuanceLimitIn) public {
@@ -53,12 +60,17 @@ contract Ticket {
     uint256 numTickets = 0;
     uint256 numDiscounts = 0;
     uint256 limitOfOwnershipChange = 1;
+
+    /* 
+        The standard exchange rate for the TickTokens = 1/200 = 0.005 = 0.5%
+        In other words, one TickToken can be redeemed for a 0.5% discount on any tickets purchase
+    */
     uint256 baseDiscount = 200;
+
     mapping(uint256 => ticket) public tickets;
     mapping(uint256 => mapping(address => uint256)) ticketsIssued; // Event ID => User ID => Number of tickets issued
 
     mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
-    mapping(address => userTier) public userTiers; //Tracking each user's tier
     mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
 
     uint256 oneEth = 1000000000000000000;
@@ -139,8 +151,7 @@ contract Ticket {
                 eventId,
                 msg.sender,
                 ticketState.active,
-                0,
-                eventContract.getExpiry(eventId)
+                0
             );
 
             tickets[numTickets] = newTicket;
@@ -148,11 +159,11 @@ contract Ticket {
             numTickets++;
         }
 
-        // Update the # of transactions of the user
+        // Update the # of transactions for the user (for loyalty programs)
         uint256 totalTransactions = noOfTransactions[msg.sender] + quantity;
         noOfTransactions[msg.sender] = totalTransactions;
         
-        // Give tokens (part of loyalty program)
+        // Give TickTokens (part of loyalty program)
         tokenContract.mintToken(msg.sender, quantity);
 
         emit ticketIssued(numTickets);
@@ -187,7 +198,7 @@ contract Ticket {
         return tickets[ticketId].numberOfOwnershipChanges < limitOfOwnershipChange;
     }
 
-    // Sets the market address
+    // Sets the address of the secondary market
     function setMarket(address marketIn) public {
         market = marketIn;
     }
