@@ -17,9 +17,6 @@
 8. Create `.env` file
 9. Copy and paste `FSALT_ROUNDS=10` and `JWT_PRIVATE_KEY=Bl4ckP455` into the file
 
-## To run backend
-1. cd to `back`
-2. Run `nodemon index.js`
 
 ## To setup Truffle and EVM
 1. Launch Ganache
@@ -27,4 +24,3 @@
 3. `truffle compile`
 4. `truffle migrate`
 5. `truffle test`
->>>>>>> 6a9f48958919728b3d8e1f05ad0cf87449159b0e

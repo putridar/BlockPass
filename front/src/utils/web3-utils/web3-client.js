@@ -7,9 +7,9 @@ import { ethers } from "ethers";
 const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:7545');
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
-const ticket_address = "0xEDAb002B19d9E899B30691386850b5aF68c313d5";
-const event_address = "0x4f93ed2dD3492C37b7500f6fdd3BDD664c38702b";
-const market_address= "0xd2E49c0D8097749aB3E643FCaD6055C47e12778E";
+const ticket_address = process.env.REACT_APP_TICKET_ADDRESS;
+const event_address = process.env.REACT_APP_EVENT_ADDRESS;
+const market_address= process.env.REACT_APP_MARKET_ADDRESS;
 const ticket_instance = new ethers.Contract(ticket_address, TicketAbi.abi, signer);
 const event_instance = new ethers.Contract(event_address, EventAbi.abi, signer);
 const market_instance = new ethers.Contract(market_address, MarketAbi.abi, signer);
@@ -32,15 +32,9 @@ const getAllEvents = async () => {
 }
 
 const getEventInfo = async (eventId) => {
-    
     const eventTitle = await event_instance.getEventTitle(parseInt(eventId));
-    console.log("HERE EVENT ID" , eventTitle)
     const expiredDate = await event_instance.getExpiry(eventId);
-    
-    
     const standardPrice = await event_instance.getStandardPrice(eventId);
-    
-    
     const res =  [eventTitle, Number(expiredDate._hex)/ 10000, Number(standardPrice._hex)];
     
     return res;
