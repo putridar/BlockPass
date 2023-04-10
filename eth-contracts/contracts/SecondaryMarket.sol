@@ -44,7 +44,7 @@ contract SecondaryMarket {
     }
 
     modifier isNotListed(uint256 ticketId) {
-        require(listings[ticketId] == 0, "Ticket has not been listed!");
+        require(listings[ticketId] == 0, "Ticket has been listed!");
         _;
     }
     

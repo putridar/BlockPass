@@ -46,6 +46,9 @@ contract('Secondary Market', function (accounts) {
         // Listing price includes commission fee
         let listingPrice = await secondaryMarketInstance.checkPrice(0);
         assert.equal(listingPrice.words[0], 4, "Ticket was not listed at the expected price");
+
+        // let listedArray = await secondaryMarketInstance.getAllListings();
+        // assert.equal(listedArray, 4, "Ticket was not listed at the expected price");
     });
 
     it("Buy a ticket from the secondary market", async () => {

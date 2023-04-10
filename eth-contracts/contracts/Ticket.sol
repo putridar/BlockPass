@@ -217,4 +217,8 @@ contract Ticket {
 
         return true;
     }
+
+    function getEventId(uint256 ticketId) public view validTicket(ticketId) returns (uint256) {
+        return tickets[ticketId].eventId;
+    }
 }

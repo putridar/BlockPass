@@ -1,15 +1,20 @@
 import Web3 from 'web3';
 import TicketAbi from './abis/Ticket.json';
 import EventAbi from './abis/Event.json';
+import MarketAbi from './abis/SecondaryMarket.json';
 import { ethers } from "ethers";
 
 const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:7545');
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
-const ticket_address = "0x1632554B04d418B14987A3169a0775D160dA6935";
-const event_address = "0xBEEBC3c59a712025c563FfdC82b25C729D7E79Ce";
+const ticket_address = "0xEDAb002B19d9E899B30691386850b5aF68c313d5";
+const event_address = "0x4f93ed2dD3492C37b7500f6fdd3BDD664c38702b";
+const market_address= "0xd2E49c0D8097749aB3E643FCaD6055C47e12778E";
 const ticket_instance = new ethers.Contract(ticket_address, TicketAbi.abi, signer);
 const event_instance = new ethers.Contract(event_address, EventAbi.abi, signer);
+const market_instance = new ethers.Contract(market_address, MarketAbi.abi, signer);
+
+const oneEth = BigInt(1000000000000000000);
 
 const createEvent = async (title, maxTicketSupply, standardPrice, date) => {
     try {
@@ -53,4 +58,61 @@ const getWalletBalance = async (walletAddress) => {
     return balance;
 }
 
-export { getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo };
+const getListedTickets = async () => {
+    const listed = await market_instance.getAllListings();
+    console.log("listed is ", listed);
+    return listed.map((ticketId) => Number(ticketId.toNumber()));
+}
+
+const getTicketInfo = async (ticketId) => {
+    
+    const eventId = await ticket_instance.getEventId(ticketId);
+    const eventTitle = await event_instance.getEventTitle(eventId);
+    console.log("HERE EVENT ID" , eventTitle);
+    const expiredDate = await event_instance.getExpiry(eventId);    
+    const standardPrice = await event_instance.getStandardPrice(eventId);
+    const askingPrice = await market_instance.checkPrice(ticketId);
+    
+    const res =  [ticketId, eventTitle, Number(expiredDate._hex)/ 10000, Number(standardPrice._hex), Number(askingPrice._hex)];
+    
+    return res;
+}
+
+const buyTicketMarket = async (ticketId, offeredPrice) => {
+    await market_instance.buy(ticketId, {value: oneEth * BigInt(offeredPrice)});
+    console.log("Buy Ticket ", ticketId, "from Market");
+}
+
+const sellTicketMarket = async (ticketId, askingPrice) => {
+    await market_instance.list(ticketId, askingPrice);
+    console.log("List Ticket ", ticketId, "to Market");
+}
+
+const populateData = async () => {
+    try {
+        console.log("Populate Data");
+        // const today = new Date();
+        // const parsedDate = Date.parse(today);
+        // console.log("creating event");
+        //await event_instance.createEvent("Maroon 5", parseInt(100), parseInt(1), parsedDate);
+        // await event_instance.createEvent("HONNE", parseInt(100), parseInt(1), parsedDate);
+        // await event_instance.createEvent("The Weeknd", parseInt(100), parseInt(1), parsedDate);
+        // console.log("event created");
+        // console.log("activating events");
+        // await event_instance.activateEvent(0);
+        // console.log(event_instance.eventIsActive(0));
+        // await event_instance.activateEvent(1);
+        // console.log(event_instance.eventIsActive(1));
+        // await event_instance.activateEvent(2);
+        // console.log(event_instance.eventIsActive(2));
+        // console.log("events activated");
+        // console.log("buying tickets");
+        // await ticket_instance.issueTickets(0, 2, 0, { value: oneEth*BigInt(3)});
+        // console.log("tickets bought");
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export { getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo, populateData, getListedTickets, getTicketInfo, buyTicketMarket, sellTicketMarket };
