@@ -1,5 +1,14 @@
 pragma solidity ^0.5.0;
 
+/* 
+    BlockTier is one of two components that make up the loyalty program.
+    In essence, based on the number of tickets he/she has bought,
+    a user can increase the max number of tickets he/she can buy for any event. 
+
+    By default, a user needs to buy 8 tickets to advance to the next "tier" and
+    each tier increases the max number of ticket by 2.
+    These two numbers are set when deploying the contract.
+*/
 contract BlockTier {
     address admin = msg.sender;
 
