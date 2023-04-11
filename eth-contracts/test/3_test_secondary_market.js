@@ -9,6 +9,12 @@ var Event = artifacts.require("../contracts/Event.sol");
 var Ticket = artifacts.require("../contracts/Ticket.sol");
 var SecondaryMarket = artifacts.require("../contracts/SecondaryMarket.sol");
 
+/* 
+    Tests the functionalities of the Secondary Market, including:
+    1. Listing of a ticket on the secondary market
+    2. Purchase of a secondhand ticket that has been listed on the market
+    3. A user fails to list a ticket that has changed hands once before
+*/
 contract('Secondary Market', function (accounts) {
     before(async () => {
         eventInstance = await Event.deployed();

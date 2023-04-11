@@ -3,19 +3,24 @@ pragma solidity ^0.5.0;
 import "./Ticket.sol";
 
 /*
-SECONDARY MARKET
-1. Listed price is ask price + fee
-2. Fee is sent to admin
-3. All prices are denoted in ETH, except for msg.value
+    The Secondary Market is a place to buy and sell tickets that have been bought.
 
-//TODO: Multiple quantity listings?
+    Key details:
+    1. Listed price is ask price + commission fee
+    2. Fee is sent directly to admin
+    3. All prices are denoted in ETH, except for msg.value
+
+    Flow:
+    1. User lists a ticket he/she has bought, inputs asking price
+    2. Another user buys the ticket directly using ETH
 */
 contract SecondaryMarket {
     Ticket ticketContract;
-    uint256 fee = 0; // in ETH
+    uint256 fee = 0; // Commission fee, in ETH
     address admin = msg.sender;
-    uint256 oneEth = 1000000000000000000;
     uint256 numListings = 0;
+    
+    uint256 oneEth = 1000000000000000000;
 
     constructor(Ticket ticketContractIn, uint256 feeIn) public {
         ticketContract = ticketContractIn;
@@ -45,7 +50,10 @@ contract SecondaryMarket {
     
     // Ask price in ETH
     function list(uint256 ticketId, uint256 askPrice) public ownerOnly(ticketId) isNotListed(ticketId) {
+
+        // Tickets that have changed hands more than once cannot be listed on the secondary market.
         require(ticketContract.checkOwnershipChangeValidity(ticketId), "This ticket cannot be sold due to the limit on changes of ownership!");
+        
         require(askPrice > 0, "Asking price must be non-negative!");
         listings[ticketId] = askPrice;
         numListings++;

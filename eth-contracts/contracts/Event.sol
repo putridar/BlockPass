@@ -1,5 +1,15 @@
 pragma solidity ^0.5.0;
 
+/*
+    This contract allows organizers to create and activate
+    events. 
+    
+    Flow:
+    1. Create new event
+    2. Activate event
+
+    The event automatically expires once its expiry date has passed.
+*/
 contract Event {
     address admin = msg.sender;
 
@@ -9,14 +19,17 @@ contract Event {
         uint256 eventId;
         string title;
         address organizer;
-        uint256 maxTicketSupply;
-        uint256 currTicketSupply;
+        uint256 maxTicketSupply; // Max amount of ticket that can be issued
+        uint256 currTicketSupply; // Current amount of ticket that has been issued
         uint256 standardPrice; // in ETH
         eventState currState;
-        uint256 expiry;
+        uint256 expiry; // Represents the expiry date of the event (e.g., the date once a multi-day concert ends)
     }
 
+    // An event has been activated
     event eventActivated (uint256 eventId);
+
+    // An event has expired
     event eventExpired (uint256 eventId);
 
     uint256 numEvents = 0;
