@@ -1,0 +1,7 @@
+front/node_modules
+front/.env
+back/node_modules
+back/.env
+back/firebase-config.json
+node_modules
+eth-contracts/build
