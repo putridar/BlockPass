@@ -50,6 +50,11 @@ function Interaction() {
                 <button className="p-2 border-2 border-black" onClick={populateData}>Populate Data</button>
             </div>
             <div>
+                <Link to="/buyticketofficial">
+                <button className="p-2 border-2 border-black">Go To Official Market</button>
+                </Link>
+            </div>
+            <div>
                 <Link to="/market">
                 <button className="p-2 border-2 border-black">Go To Secondary Market</button>
                 </Link>
@@ -60,7 +65,8 @@ function Interaction() {
                     <tr>
                         <th className="px-5">Event Title</th>
                         <th className="px-5">Expired Date</th>
-                        <th className="px-5">Market Ticket Price</th>
+                        <th className="px-5">Event Date</th>
+                        <th className="px-5">Standard Price</th>
                     </tr>
                 </thead>
                 <tbody className="text-center">
@@ -68,15 +74,10 @@ function Interaction() {
                         eventIds.map((details, id) => {
                             return (
                                 <tr key={id}>
-                                    <td>
-                                        {details[0]}
-                                    </td>
-                                    <td>
-                                        {details[1]}
-                                    </td>
-                                    <td>
-                                            {details[2]}
-                                    </td>
+                                    <td>{details[0]}</td>
+                                    <td>{details[1]}</td>
+                                    <td>{details[2]}</td>
+                                    <td>{details[3]}</td>
                                 </tr>
                             );
                         })
