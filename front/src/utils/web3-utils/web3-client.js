@@ -35,12 +35,18 @@ const getEventInfo = async (eventId) => {
     const eventTitle = await event_instance.getEventTitle(parseInt(eventId));
     const expiredDate = await event_instance.getExpiry(eventId);
 
-    var dateFormat= new Date(expiredDate);
+    var dateFormat= new Date(parseInt(expiredDate));
     const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + 1 + "/" + dateFormat.getFullYear(); 
     const standardPrice = await event_instance.getStandardPrice(eventId);
     const res =  [eventId, eventTitle, date, Number(standardPrice._hex)];
     
     return res;
+}
+
+const getOwnedTickets = async (walletAddress) => {
+    const tickets = await ticket_instance.getOwnedTickets(walletAddress);
+
+    return tickets;
 }
 
 const getWalletAddress = async () => {
@@ -67,7 +73,7 @@ const getTicketInfo = async (ticketId) => {
     const eventTitle = await event_instance.getEventTitle(eventId);
     const expiredDate = await event_instance.getExpiry(eventId);    
 
-    var dateFormat= new Date(expiredDate);
+    var dateFormat= new Date(parseInt(expiredDate));
     const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + 1 + "/" + dateFormat.getFullYear(); 
     const standardPrice = await event_instance.getStandardPrice(eventId);
     const askingPrice = await market_instance.checkPrice(ticketId);
@@ -108,7 +114,7 @@ const populateData = async () => {
         // const today = new Date();
         // const parsedDate = Date.parse(today);
         // console.log("creating event");
-        //await event_instance.createEvent("Maroon 5", parseInt(100), parseInt(1), parsedDate);
+        // await event_instance.createEvent("Maroon 5", parseInt(100), parseInt(1), parsedDate);
         // await event_instance.createEvent("HONNE", parseInt(100), parseInt(1), parsedDate);
         // await event_instance.createEvent("The Weeknd", parseInt(100), parseInt(1), parsedDate);
         // console.log("event created");
@@ -129,4 +135,4 @@ const populateData = async () => {
     }
 }
 
-export { getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo, populateData, getListedTickets, getTicketInfo, buyTicketMarket, sellTicketMarket, buyTicketFromOrganizer };
+export { getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo, populateData, getListedTickets, getTicketInfo, buyTicketMarket, sellTicketMarket, buyTicketFromOrganizer, getOwnedTickets };

@@ -1,10 +1,21 @@
-import React, { useState } from "react";
-import { sellTicketMarket } from "../../utils/web3-utils/web3-client";
+import React, { useState, useEffect } from "react";
+import { getOwnedTickets, sellTicketMarket } from "../../utils/web3-utils/web3-client";
 import { Link } from 'react-router-dom';
+import { useUser } from "../../context/auth-context";
 
 function MarketSell() {
     const [form, setForm] = useState({});
     const [message, setMessage] = useState("");
+    const [myTickets, setMyTickets] = useState([]);
+    const user = useUser();
+
+    useEffect(() => {
+        (async () => {
+            const data = await getOwnedTickets(user.walletAddress);
+            console.log(data);
+        })();
+    }, [])
+    
 
     const handleChange = (e) => {
         setForm({
