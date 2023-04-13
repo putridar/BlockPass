@@ -69,7 +69,7 @@ contract Ticket {
 
     mapping(uint256 => ticket) public tickets;
     mapping(uint256 => mapping(address => uint256)) ticketsIssued; // Event ID => User ID => Number of tickets issued
-
+    mapping(address => uint256[]) public ticketOwned; // Ticket owned for each address
     mapping(address => uint256) public noOfTransactions; //Tracking how many transactions each user made
     mapping(uint256 => uint256) public maxMintLimit; //Maximum ticket minting limit for each tier || NEED TO INITIALIZE!!!
 
@@ -153,7 +153,7 @@ contract Ticket {
                 ticketState.active,
                 0
             );
-
+            ticketOwned[msg.sender].push(numTickets);
             tickets[numTickets] = newTicket;
             res[i] = numTickets;
             numTickets++;
@@ -220,5 +220,9 @@ contract Ticket {
 
     function getEventId(uint256 ticketId) public view validTicket(ticketId) returns (uint256) {
         return tickets[ticketId].eventId;
+    }
+
+    function getOwnedTickets(address user) public view returns (uint256[] memory) {
+        return ticketOwned[user];
     }
 }
