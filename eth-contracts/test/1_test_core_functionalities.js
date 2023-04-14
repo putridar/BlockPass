@@ -94,8 +94,11 @@ contract('Core Functionalities', function (accounts) {
         let eventSupply = await eventInstance.getSupply(0);
         assert.strictEqual(eventSupply.toNumber(), currSupply.toNumber() + 2, "Tickets are not issued!");
 
-        let tickets = await ticketInstance.getOwnedTickets(user1);
+        let tickets = await ticketInstance.getOwnedTickets({ from: user1});
         assert.equal(tickets[0], 0, "Ticket is not issued!")
+
+        let tickets2 = await ticketInstance.getOwnedTickets({ from:user2});
+        assert.equal(tickets2.length, 0, "Issue ticket failed")
     });
 
     it("Attempt to issue Ticket beyond base limit fails", async () => {
