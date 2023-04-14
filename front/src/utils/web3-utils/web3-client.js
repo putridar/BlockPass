@@ -34,11 +34,27 @@ const getAllEvents = async () => {
 const getEventInfo = async (eventId) => {
     const eventTitle = await event_instance.getEventTitle(parseInt(eventId));
     const expiredDate = await event_instance.getExpiry(eventId);
-
+    
     var dateFormat= new Date(parseInt(expiredDate));
-    const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + 1 + "/" + dateFormat.getFullYear(); 
+    const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + "/" + dateFormat.getFullYear(); 
     const standardPrice = await event_instance.getStandardPrice(eventId);
     const res =  [eventId, eventTitle, date, Number(standardPrice._hex)];
+    
+    return res;
+}
+
+const getTicketInfo = async (ticketId) => {
+    
+    const eventId = await ticket_instance.getEventId(ticketId);
+    const eventTitle = await event_instance.getEventTitle(eventId);
+    const expiredDate = await event_instance.getExpiry(eventId);    
+
+    var dateFormat= new Date(parseInt(expiredDate));
+    const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + "/" + dateFormat.getFullYear(); 
+    const standardPrice = await event_instance.getStandardPrice(eventId);
+    const askingPrice = await market_instance.checkPrice(ticketId);
+    
+    const res =  [ticketId, eventTitle, date, Number(standardPrice._hex), Number(askingPrice._hex)];
     
     return res;
 }
@@ -67,21 +83,6 @@ const getListedTickets = async () => {
     return listed.map((ticketId) => Number(ticketId.toNumber()));
 }
 
-const getTicketInfo = async (ticketId) => {
-    
-    const eventId = await ticket_instance.getEventId(ticketId);
-    const eventTitle = await event_instance.getEventTitle(eventId);
-    const expiredDate = await event_instance.getExpiry(eventId);    
-
-    var dateFormat= new Date(parseInt(expiredDate));
-    const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + 1 + "/" + dateFormat.getFullYear(); 
-    const standardPrice = await event_instance.getStandardPrice(eventId);
-    const askingPrice = await market_instance.checkPrice(ticketId);
-    
-    const res =  [ticketId, eventTitle, date, Number(standardPrice._hex), Number(askingPrice._hex)];
-    
-    return res;
-}
 
 const buyTicketMarket = async (ticketId, offeredPrice) => {
     await market_instance.buy(ticketId, {value: oneEth * BigInt(offeredPrice)});
