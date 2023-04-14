@@ -48,7 +48,7 @@ contract Event {
     }
 
     modifier validEvent(uint256 eventId) {
-        require(eventId <= numEvents);
+        require(eventId < numEvents);
         _;
     }
 
@@ -90,8 +90,8 @@ contract Event {
         );
 
         events[numEvents] = newEvent;
-        numEvents++;
         allEvents.push(numEvents);
+        numEvents++;
         return newEvent.eventId;
     }
 

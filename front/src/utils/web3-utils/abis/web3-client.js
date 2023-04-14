@@ -43,7 +43,7 @@ const getEventInfo = async (eventId) => {
     return res;
 }
 
-const getListedTicketInfo = async (ticketId) => {
+const getTicketInfo = async (ticketId) => {
     
     const eventId = await ticket_instance.getEventId(ticketId);
     const eventTitle = await event_instance.getEventTitle(eventId);
@@ -59,24 +59,9 @@ const getListedTicketInfo = async (ticketId) => {
     return res;
 }
 
-const getTicketInfo = async (ticketId) => {
-    
-    const eventId = await ticket_instance.getEventId(ticketId);
-    const eventTitle = await event_instance.getEventTitle(eventId);
-    const expiredDate = await event_instance.getExpiry(eventId);    
-
-    var dateFormat= new Date(parseInt(expiredDate));
-    const date = dateFormat.getDate() + "/" + dateFormat.getMonth() + "/" + dateFormat.getFullYear(); 
-    const standardPrice = await event_instance.getStandardPrice(eventId);
-    
-    const res =  [ticketId, eventTitle, date, Number(standardPrice._hex)];
-    
-    return res;
-}
-
-const getOwnedTickets = async () => {
+const getOwnedTickets = async (walletAddress) => {
     const tickets = await ticket_instance.getOwnedTickets();
-    console.log(tickets)
+
     return tickets;
 }
 
@@ -113,24 +98,15 @@ const buyTicketFromOrganizer = async (eventId, ticketQty, buyingPrice) => {
 
     // console.log("Hello"); 
 
-    const isActive = await event_instance.eventIsActive(eventId)
+    const isActive = await event_instance.eventIsActive(parseInt(eventId))
 
     if (!isActive) {
-        return;
+        await event_instance.activateEvent(parseInt(eventId));
     }
 
     await ticket_instance.issueTickets(eventId, ticketQty, 0);
 
     // console.log("Buy Ticket ", eventId, "from Organizer");
-}
-
-const activateEvent = async (eventId) => {
-    const isActive = await event_instance.eventIsActive(eventId)
-    if (isActive) {
-        return;
-    }
-
-    await event_instance.activateEvent(eventId);
 }
 
 const populateData = async () => {
@@ -160,4 +136,4 @@ const populateData = async () => {
     }
 }
 
-export { getTicketInfo, activateEvent, getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo, populateData, getListedTickets, getListedTicketInfo, buyTicketMarket, sellTicketMarket, buyTicketFromOrganizer, getOwnedTickets };
+export { getWalletAddress, getWalletBalance, createEvent, getAllEvents, getEventInfo, populateData, getListedTickets, getTicketInfo, buyTicketMarket, sellTicketMarket, buyTicketFromOrganizer, getOwnedTickets };

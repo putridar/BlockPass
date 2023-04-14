@@ -17,16 +17,9 @@ function Interaction() {
     const fetchAllEventIds = async () => {
         const data = await getAllEvents();
         let array = [];
-        
         for (const element of data) {
-            try {
-                
-                const datum = await getEventInfo(element);
-                array.push(datum);
-                console.log("HERE PLEAASE", datum)
-            } catch (error) {
-                
-            }
+            const datum = await getEventInfo(element);
+            array.push(datum);
         } 
         setEventIds(array);
     } 
@@ -44,7 +37,7 @@ function Interaction() {
     }
 
     return (
-        <div>
+        <div className="mx-20">
             <form onSubmit={addEvent} >
                 <input className="p-2 border-2 border-black" onChange={handleChange} type="text" placeholder="title" name="title" />
                 <input className="p-2 border-2 border-black" onChange={handleChange} type="text" placeholder="Max Ticket Supply" name="maxTicketSupply" />
@@ -56,28 +49,40 @@ function Interaction() {
                 <button className="p-2 border-2 border-black" onClick={populateData}>Populate Data</button>
             </div>
             <div>
+                <Link to="/buyticketofficial">
+                <button className="p-2 border-2 border-black">Go To Official Market</button>
+                </Link>
+            </div>
+            <div>
                 <Link to="/market">
                 <button className="p-2 border-2 border-black">Go To Secondary Market</button>
                 </Link>
             </div>
             <div>Event List</div>
-            {
-                eventIds.map((details, id) => {
-                    return (
-                        <div key={id}>
-                            <div>
-                                {details[0]}
-                            </div>
-                            <div>
-                                {details[1]}
-                            </div>
-                            <div>
-                                    {details[2]}
-                            </div>
-                        </div>
-                    );
-                })
-            }
+            <table>
+                <thead className="border-b-2 border-black">
+                    <tr>
+                        <th className="px-5">Event ID</th>
+                        <th className="px-5">Event Title</th>
+                        <th className="px-5">Event Date</th>
+                        <th className="px-5">Standard Price</th>
+                    </tr>
+                </thead>
+                <tbody className="text-center">
+                    {
+                        eventIds.map((details, id) => {
+                            return (
+                                <tr key={id}>
+                                    <td>{details[0]}</td>
+                                    <td>{details[1]}</td>
+                                    <td>{details[2]}</td>
+                                    <td>{details[3]}</td>
+                                </tr>
+                            );
+                        })
+                    }
+                </tbody>
+            </table>
         </div>
     );
 }

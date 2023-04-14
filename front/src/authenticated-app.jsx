@@ -6,6 +6,7 @@ import NavView from "./features/Nav/NavView";
 import MarketHome from "./features/Market/MarketHome";
 import MarketBuy from "./features/Market/MarketBuy";
 import MarketSell from "./features/Market/MarketSell";
+import BuyTicket from "./features/BuyTicket/BuyTicket";
 
 function AuthenticatedApp() {
 
@@ -21,6 +22,7 @@ function AuthenticatedApp() {
                     <Route path='/market' element={ <MarketHome />} />
                     <Route path='/market/buy' element={ <MarketBuy />} />
                     <Route path='/market/sell' element={ <MarketSell />} />
+                    <Route path='/buyticketofficial' element={ <BuyTicket />} />
                 </Routes>
             </Router>
         </div>
