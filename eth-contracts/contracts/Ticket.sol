@@ -222,7 +222,7 @@ contract Ticket {
         return tickets[ticketId].eventId;
     }
 
-    function getOwnedTickets(address user) public view returns (uint256[] memory) {
-        return ticketOwned[user];
+    function getOwnedTickets() public view returns (uint256[] memory) {
+        return ticketOwned[msg.sender];
     }
 }
