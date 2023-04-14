@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getListedTickets, getTicketInfo, buyTicketMarket } from "../../utils/web3-utils/web3-client";
+import { getListedTickets, getListedTicketInfo, buyTicketMarket } from "../../utils/web3-utils/web3-client";
 import { Link } from 'react-router-dom';
 
 function Interaction() {
@@ -25,7 +25,7 @@ function Interaction() {
         for (const element of data) {
             console.log("for loop data");
             try {
-                const datum = await getTicketInfo(element);
+                const datum = await getListedTicketInfo(element);
                 array.push(datum);
                 console.log("Log this", datum)
             } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {getAllEvents, getEventInfo, buyTicketFromOrganizer} from "../../utils/web3-utils/web3-client";
+import { getAllEvents, getEventInfo, buyTicketFromOrganizer, activateEvent } from "../../utils/web3-utils/web3-client";
 import { Link } from 'react-router-dom';
 
 function BuyTicket() {
@@ -20,13 +20,8 @@ function BuyTicket() {
         let array = [];
         
         for (const element of data) {
-            try {
-                
-                const datum = await getEventInfo(element);
-                array.push(datum);
-            } catch (error) {
-                
-            }
+            const datum = await getEventInfo(element);
+            array.push(datum);
         } 
         setEventIds(array);
     } 
@@ -91,6 +86,7 @@ function BuyTicket() {
                                     <td>{details[1]}</td>
                                     <td>{details[2]}</td>
                                     <td>{details[3]}</td>
+                                    <td><button onClick={() => activateEvent(parseInt(details[0]))} className="p-2 border-black border-2 rounded-md">Activate</button></td>
                                 </tr>
                             );
                         })

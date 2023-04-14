@@ -16,7 +16,6 @@ function Interaction() {
     
     const fetchAllEventIds = async () => {
         const data = await getAllEvents();
-        console.log(data)
         let array = [];
         for (const element of data) {
             const datum = await getEventInfo(element);
