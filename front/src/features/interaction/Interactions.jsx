@@ -16,8 +16,8 @@ function Interaction() {
     
     const fetchAllEventIds = async () => {
         const data = await getAllEvents();
+        console.log(data)
         let array = [];
-        data.pop();
         for (const element of data) {
             const datum = await getEventInfo(element);
             array.push(datum);
@@ -63,8 +63,8 @@ function Interaction() {
             <table>
                 <thead className="border-b-2 border-black">
                     <tr>
+                        <th className="px-5">Event ID</th>
                         <th className="px-5">Event Title</th>
-                        <th className="px-5">Expired Date</th>
                         <th className="px-5">Event Date</th>
                         <th className="px-5">Standard Price</th>
                     </tr>
